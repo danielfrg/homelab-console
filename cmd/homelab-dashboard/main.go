@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"homelab-dashboard/internal/apps"
 	"homelab-dashboard/internal/httpapi"
 	"homelab-dashboard/internal/web"
 )
@@ -20,6 +21,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	config, err := apps.KubernetesConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+	source, err := apps.NewKubernetesSource(config)
+	if err != nil {
+		log.Fatal(err)
+	}
+	catalog := apps.NewCatalog(source)
 	addr := os.Getenv("HOMELAB_DASHBOARD_ADDR")
 	if addr == "" {
 		addr = "127.0.0.1:8080"
@@ -29,7 +39,7 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Printf("Homelab listening on %s", addr)
-	if err := serve(ctx, listener, httpapi.NewHandler(assets), 5*time.Second); err != nil {
+	if err := serve(ctx, listener, httpapi.NewHandler(assets, catalog), 5*time.Second); err != nil {
 		log.Fatal(err)
 	}
 }

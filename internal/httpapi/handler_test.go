@@ -1,18 +1,22 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
+	"homelab-dashboard/internal/apps"
 	"mime"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"testing/fstest"
+	"time"
 )
 
 func TestHello(t *testing.T) {
 	response := httptest.NewRecorder()
-	NewHandler(nil).ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/hello", nil))
+	NewHandler(nil, nil).ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/hello", nil))
 	if response.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200", response.Code)
 	}
@@ -30,7 +34,7 @@ func TestHello(t *testing.T) {
 }
 
 func TestRouting(t *testing.T) {
-	handler := NewHandler(nil)
+	handler := NewHandler(nil, nil)
 	for _, tc := range []struct {
 		method string
 		path   string
@@ -52,7 +56,7 @@ func TestRouting(t *testing.T) {
 
 func TestOpenAPI(t *testing.T) {
 	response := httptest.NewRecorder()
-	NewHandler(nil).ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/openapi.json", nil))
+	NewHandler(nil, nil).ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/openapi.json", nil))
 	if response.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200", response.Code)
 	}
@@ -104,7 +108,7 @@ func TestOpenAPI(t *testing.T) {
 }
 
 func TestDocsAndYAML(t *testing.T) {
-	handler := NewHandler(nil)
+	handler := NewHandler(nil, nil)
 	for _, tc := range []struct {
 		path     string
 		contains []string
@@ -143,7 +147,7 @@ func TestProductionRouting(t *testing.T) {
 	handler := NewHandler(fstest.MapFS{
 		"index.html":  {Data: []byte("<!doctype html><title>Homelab</title>")},
 		"api/missing": {Data: []byte("must not shadow API routes")},
-	})
+	}, nil)
 	for _, tc := range []struct {
 		method, path string
 		status       int
@@ -169,5 +173,108 @@ func TestProductionRouting(t *testing.T) {
 				t.Fatalf("body lacks %q", tc.contains)
 			}
 		})
+	}
+}
+
+func TestAppsEndpointExists(t *testing.T) {
+	response := httptest.NewRecorder()
+	NewHandler(nil, nil).ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/apps", nil))
+	if response.Code != http.StatusServiceUnavailable {
+		t.Fatalf("apps without a catalog status = %d, want 503", response.Code)
+	}
+}
+
+type catalogStub struct {
+	snapshot  apps.Snapshot
+	err       error
+	refreshed bool
+}
+
+func (c *catalogStub) Snapshot(_ context.Context, refresh bool) (apps.Snapshot, error) {
+	c.refreshed = refresh
+	return c.snapshot, c.err
+}
+
+func TestAppsResponseAndRefreshQuery(t *testing.T) {
+	catalog := &catalogStub{snapshot: apps.Snapshot{Apps: []apps.App{{
+		ID: "default/budget-http", Name: "Budget", URL: "https://budget.example.net", Aliases: []string{}, Group: "Apps",
+	}}, UpdatedAt: time.Date(2026, 10, 8, 12, 0, 0, 0, time.UTC), Stale: true}}
+	handler := NewHandler(nil, catalog)
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, httptest.NewRequest("GET", "/api/apps?refresh=true", nil))
+	if response.Code != 200 || !catalog.refreshed {
+		t.Fatalf("status %d, refresh %v", response.Code, catalog.refreshed)
+	}
+	var body map[string]any
+	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
+		t.Fatal(err)
+	}
+	if len(body) != 3 || body["stale"] != true || body["updatedAt"] != "2026-10-08T12:00:00Z" {
+		t.Fatalf("body = %#v", body)
+	}
+	list, ok := body["apps"].([]any)
+	if !ok || len(list) != 1 {
+		t.Fatalf("apps = %#v", body["apps"])
+	}
+	app := object(t, list[0])
+	if app["url"] != "https://budget.example.net" || len(app) != 7 {
+		t.Fatalf("app = %#v", app)
+	}
+	aliases, ok := app["aliases"].([]any)
+	if !ok || len(aliases) != 0 {
+		t.Fatalf("aliases = %#v", app["aliases"])
+	}
+	invalid := httptest.NewRecorder()
+	handler.ServeHTTP(invalid, httptest.NewRequest("GET", "/api/apps?refresh=garbage", nil))
+	if invalid.Code != 422 {
+		t.Fatalf("invalid refresh status %d", invalid.Code)
+	}
+}
+
+func TestAppsFailureIsSanitizedAndHealthIndependent(t *testing.T) {
+	handler := NewHandler(nil, &catalogStub{err: errors.New("token=secret upstream detail")})
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, httptest.NewRequest("GET", "/api/apps", nil))
+	if response.Code != 503 || strings.Contains(response.Body.String(), "secret") || !strings.Contains(response.Body.String(), "temporarily unavailable") {
+		t.Fatalf("failure response = %d %s", response.Code, response.Body.String())
+	}
+	health := httptest.NewRecorder()
+	handler.ServeHTTP(health, httptest.NewRequest("GET", "/healthz", nil))
+	if health.Code != 200 || health.Body.String() != "ok\n" {
+		t.Fatalf("health = %d %s", health.Code, health.Body.String())
+	}
+}
+
+func TestAppsOpenAPI(t *testing.T) {
+	response := httptest.NewRecorder()
+	NewHandler(nil, nil).ServeHTTP(response, httptest.NewRequest("GET", "/api/openapi.json", nil))
+	var spec map[string]any
+	if err := json.Unmarshal(response.Body.Bytes(), &spec); err != nil {
+		t.Fatal(err)
+	}
+	operation := object(t, object(t, object(t, spec["paths"])["/api/apps"])["get"])
+	if operation["operationId"] != "list-apps" {
+		t.Fatalf("operation = %#v", operation)
+	}
+	parameters, ok := operation["parameters"].([]any)
+	if !ok || len(parameters) != 1 {
+		t.Fatalf("parameters = %#v", operation["parameters"])
+	}
+	refresh := object(t, parameters[0])
+	if refresh["name"] != "refresh" || refresh["in"] != "query" || object(t, refresh["schema"])["type"] != "boolean" {
+		t.Fatalf("refresh = %#v", refresh)
+	}
+	responses := object(t, operation["responses"])
+	if responses["200"] == nil || responses["503"] == nil {
+		t.Fatalf("responses = %#v", responses)
+	}
+	schemas := object(t, object(t, spec["components"])["schemas"])
+	snapshot := object(t, schemas["Snapshot"])
+	if typ := object(t, object(t, snapshot["properties"])["apps"])["type"]; typ != "array" {
+		t.Fatalf("apps schema type = %v, want non-nullable array", typ)
+	}
+	app := object(t, schemas["App"])
+	if typ := object(t, object(t, app["properties"])["aliases"])["type"]; typ != "array" {
+		t.Fatalf("aliases schema type = %v, want non-nullable array", typ)
 	}
 }

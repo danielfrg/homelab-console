@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"homelab-dashboard/internal/apps"
 	"homelab-dashboard/internal/web"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -22,7 +23,19 @@ type HelloOutput struct {
 	Body HelloBody
 }
 
-func NewHandler(assets fs.FS) http.Handler {
+type AppCatalog interface {
+	Snapshot(context.Context, bool) (apps.Snapshot, error)
+}
+
+type AppsInput struct {
+	Refresh bool `query:"refresh" default:"false" doc:"Bypass the discovery cache"`
+}
+
+type AppsOutput struct {
+	Body apps.Snapshot
+}
+
+func NewHandler(assets fs.FS, catalog AppCatalog) http.Handler {
 	mux := http.NewServeMux()
 	config := huma.DefaultConfig("Homelab API", "0.1.0")
 	config.OpenAPIPath = "/api/openapi"
@@ -40,6 +53,23 @@ func NewHandler(assets fs.FS) http.Handler {
 		Summary:     "Get the Homelab greeting",
 	}, func(_ context.Context, _ *struct{}) (*HelloOutput, error) {
 		return &HelloOutput{Body: HelloBody{Message: "Hello from Homelab"}}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "list-apps",
+		Method:      http.MethodGet,
+		Path:        "/api/apps",
+		Summary:     "List homelab apps discovered from HTTPRoutes",
+		Errors:      []int{http.StatusServiceUnavailable},
+	}, func(ctx context.Context, input *AppsInput) (*AppsOutput, error) {
+		if catalog == nil {
+			return nil, huma.Error503ServiceUnavailable("App discovery is temporarily unavailable")
+		}
+		snapshot, err := catalog.Snapshot(ctx, input.Refresh)
+		if err != nil {
+			return nil, huma.Error503ServiceUnavailable("App discovery is temporarily unavailable")
+		}
+		return &AppsOutput{Body: snapshot}, nil
 	})
 
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
