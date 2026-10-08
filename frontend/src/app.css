@@ -54,3 +54,110 @@
     @apply m-0 bg-background text-foreground antialiased;
   }
 }
+
+
+/* Approved compact launchpad layout; app cards use their shared component styles. */
+.compact-launcher {
+  width: 100%;
+  max-width: 1080px;
+  margin-inline: auto;
+  padding: 32px 24px 80px;
+}
+
+.compact-launcher .directory-header {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(300px, 460px);
+  align-items: center;
+  column-gap: 32px;
+  min-width: 0;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.compact-launcher h1 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.compact-launcher .directory-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.compact-launcher .directory-content {
+  min-width: 0;
+  margin-top: 28px;
+}
+
+.compact-launcher .directory-groups {
+  display: grid;
+  gap: 32px;
+}
+
+.compact-launcher .directory-group-title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.compact-launcher .compact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  row-gap: 16px;
+  column-gap: 32px;
+}
+
+.compact-launcher .directory-notice {
+  margin: 24px 0 0;
+  padding: 12px 16px;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: var(--radius);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.compact-launcher .directory-empty {
+  padding: 48px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.compact-launcher .directory-empty h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.compact-launcher .directory-empty p {
+  margin: 8px 0 0;
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+
+@media (max-width: 639px) {
+  .compact-launcher {
+    padding: 24px 16px 88px;
+  }
+
+  .compact-launcher .directory-header {
+    grid-template-columns: 1fr;
+    row-gap: 20px;
+  }
+
+  .compact-launcher .directory-controls {
+    gap: 8px;
+  }
+
+  .compact-launcher .compact-grid {
+    grid-template-columns: 1fr;
+  }
+}
