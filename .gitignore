@@ -30,3 +30,6 @@ go.work.sum
 
 /internal/web/dist/*
 !/internal/web/dist/.keep
+
+# Local visual review captures
+/.impeccable/review/

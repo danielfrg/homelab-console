@@ -77,6 +77,14 @@ export function appHostname(app: App): string {
   return new URL(app.url).hostname;
 }
 
+export function appHostnameParts(app: App): { prefix: string; domain: string } {
+  const hostname = appHostname(app);
+  const domain = ".example.net";
+  return hostname.endsWith(domain)
+    ? { prefix: hostname.slice(0, -domain.length), domain }
+    : { prefix: hostname, domain: "" };
+}
+
 export function filterApps(apps: App[], query: string): App[] {
   const search = query.trim().toLocaleLowerCase();
   if (!search) return apps;
@@ -91,7 +99,8 @@ export function groupApps(apps: App[]): { name: string; apps: App[] }[] {
     group.push(app);
     groups.set(app.group, group);
   }
-  return [...groups].sort(([left], [right]) => left.localeCompare(right))
+  const rank = (name: string): number => name === "Favorites" ? 0 : name === "Apps" ? 1 : 2;
+  return [...groups].sort(([left], [right]) => rank(left) - rank(right) || left.localeCompare(right))
     .map(([name, apps]) => ({ name, apps }));
 }
 
