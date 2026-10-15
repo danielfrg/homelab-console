@@ -27,7 +27,7 @@ func route(namespace, name string, hosts []string, annotations map[string]string
 	return unstructured.Unstructured{Object: map[string]any{
 		"apiVersion": "gateway.networking.k8s.io/v1", "kind": "HTTPRoute",
 		"metadata": map[string]any{"namespace": namespace, "name": name, "annotations": annotationValues,
-			"labels": map[string]any{"app.kubernetes.io/name": "restic"}},
+			"labels": map[string]any{"app.kubernetes.io/name": "shared"}},
 		"spec": map[string]any{"hostnames": hostValues},
 	}}
 }
