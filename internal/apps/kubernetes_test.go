@@ -46,7 +46,7 @@ func TestNormalizeRoutes(t *testing.T) {
 		route("default", "budget-http", []string{"budget.example.net"}, map[string]string{"gethomepage.dev/name": "Ignore old namespace"}),
 		route("default", "hidden-http", []string{"hidden.example.net"}, map[string]string{"launcher.example.net/enabled": "false"}),
 		route("default", "external-http", []string{"external.example.com", "*.example.net", "fakeexample.net", "example.net.evil.example.com"}, nil),
-		route("default", "homelab-dashboard-http", []string{"home.example.net"}, nil),
+		route("default", "homelab-dashboard-http", []string{"apps.example.net"}, nil),
 		route("default", "hostless-http", nil, nil),
 	}}
 	want := []App{

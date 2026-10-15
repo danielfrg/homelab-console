@@ -14,11 +14,10 @@ maintaining a second app inventory.
 
 Local development uses `just api` and `just frontend`. Kubernetes access uses
 the current kubeconfig context or `KUBECONFIG`; credentials stay on the server.
-`HOMELAB_DASHBOARD_ADDR` selects the API listen address, defaulting to
-`127.0.0.1:8080`. `HOMELAB_DASHBOARD_API_TARGET` overrides the frontend dev
+`HOMELAB_LAUNCHER_ADDR` selects the API listen address, defaulting to
+`127.0.0.1:8080`. `HOMELAB_LAUNCHER_API_TARGET` overrides the frontend dev
 proxy target. Production serves the embedded frontend and Huma API from one
-Go executable with a dedicated read-only ServiceAccount. Preserve the existing
-Forgejo image build and Argo/manual restart release flow. Develop and review
+Go executable with a dedicated read-only ServiceAccount. GitHub Actions builds public
 changes locally first.
 
 ## Capabilities and Constraints
@@ -54,6 +53,12 @@ changes locally first.
 ```shell
 go test ./...
 go vet ./...
+pnpm --dir frontend test
 pnpm --dir frontend check
 pnpm --dir frontend build
 ```
+
+Legacy `HOMELAB_DASHBOARD_ADDR` and `HOMELAB_DASHBOARD_API_TARGET` remain
+fallbacks during migration; the launcher variables take precedence. Existing
+Kubernetes resource names and route annotation keys remain `homelab-dashboard`.
+Deployment is available at `https://apps.example.net`.

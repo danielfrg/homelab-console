@@ -1,11 +1,12 @@
 api:
-    go run ./cmd/homelab-dashboard
+    go run ./cmd/homelab-launcher
 
 frontend:
     pnpm --dir frontend dev
 
 build:
     pnpm --dir frontend install --frozen-lockfile
+    pnpm --dir frontend test
     pnpm --dir frontend check
     pnpm --dir frontend build
     rm -rf internal/web/dist
@@ -15,4 +16,4 @@ build:
     test -s internal/web/dist/index.html
     go test ./...
     go vet ./...
-    CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o homelab-dashboard ./cmd/homelab-dashboard
+    CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o homelab-launcher ./cmd/homelab-launcher

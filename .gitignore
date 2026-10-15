@@ -26,6 +26,7 @@ go.work.sum
 .env
 
 # App specific
+/homelab-launcher
 /homelab-dashboard
 
 /internal/web/dist/*

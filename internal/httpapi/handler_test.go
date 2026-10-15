@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"homelab-dashboard/internal/apps"
+	"github.com/danielfrg/homelab-launcher/internal/apps"
 	"mime"
 	"net/http"
 	"net/http/httptest"

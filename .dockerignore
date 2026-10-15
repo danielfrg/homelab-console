@@ -10,6 +10,7 @@ AGENTS.md
 frontend/dist
 internal/web/dist/*
 !internal/web/dist/.keep
+homelab-launcher
 homelab-dashboard
 *.test
 *.out

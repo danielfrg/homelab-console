@@ -45,7 +45,7 @@ func KubernetesConfig() (*rest.Config, error) {
 func NewKubernetesSource(config *rest.Config) (*KubernetesSource, error) {
 	bounded := rest.CopyConfig(config)
 	bounded.Timeout = requestTimeout
-	bounded.UserAgent = "homelab-dashboard"
+	bounded.UserAgent = "homelab-launcher"
 	client, err := dynamic.NewForConfig(bounded)
 	if err != nil {
 		return nil, err

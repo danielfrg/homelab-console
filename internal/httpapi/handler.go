@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"homelab-dashboard/internal/apps"
-	"homelab-dashboard/internal/web"
+	"github.com/danielfrg/homelab-launcher/internal/apps"
+	"github.com/danielfrg/homelab-launcher/internal/web"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"

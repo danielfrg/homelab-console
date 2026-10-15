@@ -13,7 +13,7 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     proxy: {
-      "/api": process.env.HOMELAB_DASHBOARD_API_TARGET ?? "http://127.0.0.1:8080",
+      "/api": process.env.HOMELAB_LAUNCHER_API_TARGET || process.env.HOMELAB_DASHBOARD_API_TARGET || "http://127.0.0.1:8080",
     },
   },
 });

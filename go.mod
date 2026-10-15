@@ -1,4 +1,4 @@
-module homelab-dashboard
+module github.com/danielfrg/homelab-launcher
 
 go 1.25.0
 
