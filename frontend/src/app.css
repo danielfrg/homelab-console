@@ -165,7 +165,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.app-host { height: 33px; margin: 6px 0 0; font-size: 10.5px; line-height: 1.5; color: var(--host-foreground); overflow-wrap: anywhere; text-align: right; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.app-host { height: 33px; margin: 6px 0 0; font-size: 10.5px; line-height: 1.5; text-align: right; }
+.host-prefix, .host-domain { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.host-prefix { color: var(--host-foreground); }
+.host-domain { color: var(--muted-foreground); }
 .directory-notice {
   width: 100%;
   max-width: 960px;

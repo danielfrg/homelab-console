@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { filterApps, groupApps, parseSnapshot, type App } from "../src/lib/apps.ts";
+import { appHostnameParts, filterApps, groupApps, parseSnapshot, type App } from "../src/lib/apps.ts";
 
 function app(overrides: Partial<App> = {}): App {
   return {
@@ -14,6 +14,20 @@ function app(overrides: Partial<App> = {}): App {
     ...overrides,
   };
 }
+
+test("splits hostnames after the first label without assuming a domain", () => {
+  assert.deepEqual(appHostnameParts(app()), { prefix: "sample", domain: ".example.test" });
+  assert.deepEqual(
+    appHostnameParts(app({ url: "https://files.backup.another.example" })),
+    { prefix: "files", domain: ".backup.another.example" },
+  );
+});
+
+test("keeps single-label hosts and IP addresses intact", () => {
+  for (const hostname of ["localhost", "192.0.2.1", "[2001:db8::1]"]) {
+    assert.deepEqual(appHostnameParts(app({ url: `https://${hostname}` })), { prefix: hostname, domain: "" });
+  }
+});
 
 test("accepts hostnames from different domains and searches their aliases", () => {
   const snapshot = parseSnapshot({

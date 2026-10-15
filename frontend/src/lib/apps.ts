@@ -77,6 +77,15 @@ export function appHostname(app: App): string {
   return new URL(app.url).hostname;
 }
 
+export function appHostnameParts(app: App): { prefix: string; domain: string } {
+  const hostname = appHostname(app);
+  const dot = hostname.indexOf(".");
+  if (dot === -1 || hostname.startsWith("[") || /^[\d.]+$/.test(hostname)) {
+    return { prefix: hostname, domain: "" };
+  }
+  return { prefix: hostname.slice(0, dot), domain: hostname.slice(dot) };
+}
+
 export function filterApps(apps: App[], query: string): App[] {
   const search = query.trim().toLocaleLowerCase();
   if (!search) return apps;
