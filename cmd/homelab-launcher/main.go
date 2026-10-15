@@ -45,8 +45,5 @@ func listenAddr() string {
 	if addr := os.Getenv("HOMELAB_LAUNCHER_ADDR"); addr != "" {
 		return addr
 	}
-	if addr := os.Getenv("HOMELAB_DASHBOARD_ADDR"); addr != "" {
-		return addr
-	}
 	return "127.0.0.1:8080"
 }

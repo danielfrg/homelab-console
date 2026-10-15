@@ -27,7 +27,6 @@ go.work.sum
 
 # App specific
 /homelab-launcher
-/homelab-dashboard
 
 /internal/web/dist/*
 !/internal/web/dist/.keep

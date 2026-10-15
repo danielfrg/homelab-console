@@ -4,6 +4,8 @@ A launchpad for finding and opening applications discovered from Kubernetes HTTP
 
 Apps are discovered directly from Kubernetes HTTPRoutes and their metadata.
 
+![Homelab Launcher screenshot](docs/screenshot.png)
+
 ## Local development
 
 Requires Go 1.25, Node 26, pnpm 10, just, and a kubeconfig with permission to

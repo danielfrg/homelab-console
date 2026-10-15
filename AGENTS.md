@@ -57,8 +57,4 @@ pnpm --dir frontend check
 pnpm --dir frontend build
 ```
 
-Legacy `HOMELAB_DASHBOARD_ADDR` and `HOMELAB_DASHBOARD_API_TARGET` remain
-fallbacks during migration; the launcher variables take precedence. Existing
-Kubernetes resource names remain `homelab-dashboard`; the homelab manifests
-use the generic `homelab-launcher/*` presentation annotations.
 Deployment is available at `https://apps.example.net`.
