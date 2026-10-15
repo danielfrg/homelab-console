@@ -2,7 +2,7 @@
 
 The app inventory is pulled directly from Kubernetes HTTPRoutes. Homelab
 
-Route annotations under `launcher.example.net/` provide app names,
+Route annotations under `homelab-launcher/` provide app names,
 descriptions, groups, icons and visibility. Reuse this metadata instead of
 maintaining a second app inventory.
 
@@ -24,10 +24,10 @@ changes locally first.
 
 - Go discovers Gateway API v1 HTTPRoutes across namespaces through client-go.
   Keep Kubernetes access read-only and out of the frontend.
-- Only valid hostnames ending in `.example.net` are included. The
-  dashboard's own `homelab-dashboard-http` route and routes annotated with
-  `enabled=false` are excluded.
-- The first eligible hostname becomes the HTTPS app link; additional internal
+- Valid concrete HTTPRoute hostnames are included without domain filtering.
+  Routes annotated with `homelab-launcher/enabled=false` are excluded; there
+  is no special case for the launcher's own route name.
+- The first eligible hostname becomes the HTTPS app link; additional
   hostnames remain searchable aliases. Route namespace and name form the app ID.
 - Route annotations supply presentation metadata. Missing names are derived
   from route names; missing groups use `Apps`. Apps sort by name, then ID.
@@ -45,8 +45,7 @@ changes locally first.
   Failed refreshes preserve usable links and visibly identify stale results.
 - Support desktop and phone layouts, long names, labeled controls and keyboard
   navigation. Route discovery is not an app health check.
-- The approved launchpad design is in
-  `docs/superpowers/specs/2026-10-08-launchpad-design.md`.
+- Preserve the product and design guidance in `PRODUCT.md` and `DESIGN.md`.
 
 ## Check
 
@@ -60,5 +59,6 @@ pnpm --dir frontend build
 
 Legacy `HOMELAB_DASHBOARD_ADDR` and `HOMELAB_DASHBOARD_API_TARGET` remain
 fallbacks during migration; the launcher variables take precedence. Existing
-Kubernetes resource names and route annotation keys remain `homelab-dashboard`.
+Kubernetes resource names remain `homelab-dashboard`; the homelab manifests
+use the generic `homelab-launcher/*` presentation annotations.
 Deployment is available at `https://apps.example.net`.

@@ -23,7 +23,7 @@
   --input: #777;
   --ring: #e8a44b;
   --host-foreground: #d4d4d4;
-  --icon-background: #eee;
+  --icon-background: #777;
 }
 
 @theme inline {
@@ -147,7 +147,7 @@
 }
 .app-art { display: flex; align-items: flex-start; justify-content: flex-start; flex: 1; min-height: 84px; padding: 18px 14px 12px; }
 .app-logo { width: 48px; height: 48px; object-fit: contain; }
-.app-logo:is([data-icon="vault"], [data-icon="backrest"], [data-icon="frigate"]) {
+.app-logo:not([data-icon^="mdi-"]) {
   background: var(--icon-background);
   padding: 6px;
   border-radius: 4px;
@@ -165,10 +165,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.app-host { height: 33px; margin: 6px 0 0; font-size: 10.5px; line-height: 1.5; }
-.host-prefix, .host-domain { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
-.host-prefix { color: var(--host-foreground); }
-.host-domain { color: var(--muted-foreground); }
+.app-host { height: 33px; margin: 6px 0 0; font-size: 10.5px; line-height: 1.5; color: var(--host-foreground); overflow-wrap: anywhere; text-align: right; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .directory-notice {
   width: 100%;
   max-width: 960px;

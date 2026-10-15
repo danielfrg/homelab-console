@@ -77,14 +77,6 @@ export function appHostname(app: App): string {
   return new URL(app.url).hostname;
 }
 
-export function appHostnameParts(app: App): { prefix: string; domain: string } {
-  const hostname = appHostname(app);
-  const domain = ".example.net";
-  return hostname.endsWith(domain)
-    ? { prefix: hostname.slice(0, -domain.length), domain }
-    : { prefix: hostname, domain: "" };
-}
-
 export function filterApps(apps: App[], query: string): App[] {
   const search = query.trim().toLocaleLowerCase();
   if (!search) return apps;

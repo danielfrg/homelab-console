@@ -1,10 +1,9 @@
 <script lang="ts">
-  import { appHostname, appHostnameParts, appIconURL, appInitials, type App } from "$lib/apps.js";
+  import { appHostname, appIconURL, appInitials, type App } from "$lib/apps.js";
 
   let { app }: { app: App } = $props();
   const iconURL = $derived(appIconURL(app.icon));
   const hostname = $derived(appHostname(app));
-  const hostnameParts = $derived(appHostnameParts(app));
   let failedIcon = $state<string | null>(null);
 </script>
 
@@ -36,10 +35,7 @@
     </div>
     <div class="app-details">
       <h3 class="app-name" title={app.name}>{app.name}</h3>
-      <p class="app-host" title={hostname}>
-        <span class="host-prefix">{hostnameParts.prefix}</span>
-        <span class="host-domain">{hostnameParts.domain}</span>
-      </p>
+      <p class="app-host" title={hostname}>{hostname}</p>
     </div>
   </div>
 </a>

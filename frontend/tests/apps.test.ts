@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { appHostnameParts, groupApps, type App } from "../src/lib/apps.ts";
+import { filterApps, groupApps, parseSnapshot, type App } from "../src/lib/apps.ts";
 
 function app(overrides: Partial<App> = {}): App {
   return {
     id: "default/sample",
     name: "Sample",
-    url: "https://sample.example.net",
+    url: "https://sample.example.test",
     aliases: [],
     description: "",
     group: "Apps",
@@ -15,25 +15,16 @@ function app(overrides: Partial<App> = {}): App {
   };
 }
 
-test("splits the complete internal domain from a long app hostname", () => {
-  assert.deepEqual(
-    appHostnameParts(app({ url: "https://metadata-remote.example.net" })),
-    { prefix: "metadata-remote", domain: ".example.net" },
-  );
-});
-
-test("keeps nested subdomains together on the first hostname line", () => {
-  assert.deepEqual(
-    appHostnameParts(app({ url: "https://files.backup.example.net" })),
-    { prefix: "files.backup", domain: ".example.net" },
-  );
-});
-
-test("does not split a hostname that only resembles the internal suffix", () => {
-  assert.deepEqual(
-    appHostnameParts(app({ url: "https://example.net.example.com" })),
-    { prefix: "example.net.example.com", domain: "" },
-  );
+test("accepts hostnames from different domains and searches their aliases", () => {
+  const snapshot = parseSnapshot({
+    apps: [app({ url: "https://files.example.org", aliases: ["documents.example.test"] })],
+    updatedAt: "2026-01-01T00:00:00Z",
+    stale: false,
+  });
+  assert.equal(snapshot.apps[0].url, "https://files.example.org");
+  assert.equal(filterApps(snapshot.apps, "files.example.org").length, 1);
+  assert.equal(filterApps(snapshot.apps, "documents.example.test").length, 1);
+  assert.deepEqual(filterApps(snapshot.apps, "missing.example.test"), []);
 });
 
 test("places Favorites before default Apps and sorts other metadata groups", () => {

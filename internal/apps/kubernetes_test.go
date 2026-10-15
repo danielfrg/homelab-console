@@ -34,26 +34,23 @@ func route(namespace, name string, hosts []string, annotations map[string]string
 
 func TestNormalizeRoutes(t *testing.T) {
 	routes := &unstructured.UnstructuredList{Items: []unstructured.Unstructured{
-		route("default", "omada-http", []string{"external.example.com", "omada.example.net", "wifi.example.net"}, map[string]string{
-			"launcher.example.net/name":        "Omada Controller",
-			"launcher.example.net/description": "Network management",
-			"launcher.example.net/group":       "Network",
-			"launcher.example.net/icon":        "tp-link",
-			"unrelated.example.com/secret":                "never expose this",
+		route("apps", "files-http", []string{"*.example.test", "files.example.test", "files.other.test", "files.example.test"}, map[string]string{
+			"homelab-launcher/name":         "File Browser",
+			"homelab-launcher/description":  "Shared files",
+			"homelab-launcher/group":        "Tools",
+			"homelab-launcher/icon":         "mdi-folder",
+			"unrelated.example.test/secret": "never expose this",
 		}),
-		route("default", "restic-server-http", []string{"restic.example.net"}, nil),
-		route("backup", "backrest-http", []string{"backrest.example.net"}, nil),
-		route("default", "budget-http", []string{"budget.example.net"}, map[string]string{"gethomepage.dev/name": "Ignore old namespace"}),
-		route("default", "hidden-http", []string{"hidden.example.net"}, map[string]string{"launcher.example.net/enabled": "false"}),
-		route("default", "external-http", []string{"external.example.com", "*.example.net", "fakeexample.net", "example.net.evil.example.com"}, nil),
-		route("default", "homelab-dashboard-http", []string{"apps.example.net"}, nil),
-		route("default", "hostless-http", nil, nil),
+		route("apps", "calendar-http", []string{"calendar.example.org"}, nil),
+		route("apps", "launcher-http", []string{"launcher.example.test"}, nil),
+		route("apps", "hidden-http", []string{"hidden.example.test"}, map[string]string{"homelab-launcher/enabled": " FaLsE "}),
+		route("apps", "invalid-http", []string{"", "*.example.test", "https://invalid.example.test", "bad_host.example.test", "-invalid.example.test"}, nil),
+		route("apps", "hostless-http", nil, nil),
 	}}
 	want := []App{
-		{ID: "backup/backrest-http", Name: "Backrest", URL: "https://backrest.example.net", Aliases: []string{}, Group: "Apps"},
-		{ID: "default/budget-http", Name: "Budget", URL: "https://budget.example.net", Aliases: []string{}, Group: "Apps"},
-		{ID: "default/omada-http", Name: "Omada Controller", URL: "https://omada.example.net", Aliases: []string{"wifi.example.net"}, Description: "Network management", Group: "Network", Icon: "tp-link"},
-		{ID: "default/restic-server-http", Name: "Restic Server", URL: "https://restic.example.net", Aliases: []string{}, Group: "Apps"},
+		{ID: "apps/calendar-http", Name: "Calendar", URL: "https://calendar.example.org", Aliases: []string{}, Group: "Apps"},
+		{ID: "apps/files-http", Name: "File Browser", URL: "https://files.example.test", Aliases: []string{"files.other.test"}, Description: "Shared files", Group: "Tools", Icon: "mdi-folder"},
+		{ID: "apps/launcher-http", Name: "Launcher", URL: "https://launcher.example.test", Aliases: []string{}, Group: "Apps"},
 	}
 	if got := normalizeRoutes(routes); !reflect.DeepEqual(got, want) {
 		t.Fatalf("apps = %#v, want %#v", got, want)
@@ -70,7 +67,7 @@ func TestKubernetesSourceListsOnlyRoutes(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"apiVersion": "gateway.networking.k8s.io/v1", "kind": "HTTPRouteList", "metadata": map[string]any{},
-			"items": []any{route("default", "budget-http", []string{"budget.example.net"}, nil).Object},
+			"items": []any{route("default", "calendar-http", []string{"calendar.example.test"}, nil).Object},
 		})
 	}))
 	defer server.Close()
@@ -79,7 +76,7 @@ func TestKubernetesSourceListsOnlyRoutes(t *testing.T) {
 		t.Fatal(err)
 	}
 	got, err := source.List(context.Background())
-	if err != nil || len(got) != 1 || got[0].ID != "default/budget-http" || !reflect.DeepEqual(requests, []string{"GET /apis/gateway.networking.k8s.io/v1/httproutes?timeout=5s"}) {
+	if err != nil || len(got) != 1 || got[0].ID != "default/calendar-http" || !reflect.DeepEqual(requests, []string{"GET /apis/gateway.networking.k8s.io/v1/httproutes?timeout=5s"}) {
 		t.Fatalf("apps = %+v, error %v, requests %v", got, err, requests)
 	}
 }

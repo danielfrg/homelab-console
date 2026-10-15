@@ -197,7 +197,7 @@ func (c *catalogStub) Snapshot(_ context.Context, refresh bool) (apps.Snapshot, 
 
 func TestAppsResponseAndRefreshQuery(t *testing.T) {
 	catalog := &catalogStub{snapshot: apps.Snapshot{Apps: []apps.App{{
-		ID: "default/budget-http", Name: "Budget", URL: "https://budget.example.net", Aliases: []string{}, Group: "Apps",
+		ID: "default/calendar-http", Name: "Calendar", URL: "https://calendar.example.test", Aliases: []string{}, Group: "Apps",
 	}}, UpdatedAt: time.Date(2026, 10, 8, 12, 0, 0, 0, time.UTC), Stale: true}}
 	handler := NewHandler(nil, catalog)
 	response := httptest.NewRecorder()
@@ -217,7 +217,7 @@ func TestAppsResponseAndRefreshQuery(t *testing.T) {
 		t.Fatalf("apps = %#v", body["apps"])
 	}
 	app := object(t, list[0])
-	if app["url"] != "https://budget.example.net" || len(app) != 7 {
+	if app["url"] != "https://calendar.example.test" || len(app) != 7 {
 		t.Fatalf("app = %#v", app)
 	}
 	aliases, ok := app["aliases"].([]any)

@@ -21,7 +21,7 @@ func (s *testSource) List(context.Context) ([]App, error) {
 }
 
 func TestCatalogCacheRefreshAndStaleFallback(t *testing.T) {
-	source := &testSource{apps: []App{{ID: "default/budget-http", Name: "Budget", Aliases: []string{}}}}
+	source := &testSource{apps: []App{{ID: "default/calendar-http", Name: "Calendar", Aliases: []string{}}}}
 	catalog := NewCatalog(source)
 	now := time.Date(2026, 10, 8, 12, 0, 0, 0, time.UTC)
 	catalog.now = func() time.Time { return now }
@@ -31,14 +31,14 @@ func TestCatalogCacheRefreshAndStaleFallback(t *testing.T) {
 	}
 	// Consumers cannot mutate the cached data or its nested aliases.
 	first.Apps[0].Name = "Changed"
-	first.Apps[0].Aliases = append(first.Apps[0].Aliases, "other.example.net")
+	first.Apps[0].Aliases = append(first.Apps[0].Aliases, "other.example.test")
 	cached, err := catalog.Snapshot(context.Background(), false)
-	if err != nil || source.calls != 1 || cached.Apps[0].Name != "Budget" || len(cached.Apps[0].Aliases) != 0 {
+	if err != nil || source.calls != 1 || cached.Apps[0].Name != "Calendar" || len(cached.Apps[0].Aliases) != 0 {
 		t.Fatalf("cached snapshot = %+v, calls %d, error %v", cached, source.calls, err)
 	}
 	source.err = errors.New("upstream unavailable")
 	stale, err := catalog.Snapshot(context.Background(), true)
-	if err != nil || source.calls != 2 || !stale.Stale || !stale.UpdatedAt.Equal(now) || stale.Apps[0].Name != "Budget" {
+	if err != nil || source.calls != 2 || !stale.Stale || !stale.UpdatedAt.Equal(now) || stale.Apps[0].Name != "Calendar" {
 		t.Fatalf("stale snapshot = %+v, calls %d, error %v", stale, source.calls, err)
 	}
 	now = now.Add(31 * time.Second)
@@ -47,9 +47,9 @@ func TestCatalogCacheRefreshAndStaleFallback(t *testing.T) {
 		t.Fatalf("expired snapshot = %+v, calls %d, error %v", expired, source.calls, err)
 	}
 	source.err = nil
-	source.apps = []App{{ID: "default/tars-http", Name: "Tars", Aliases: []string{}}}
+	source.apps = []App{{ID: "default/files-http", Name: "Files", Aliases: []string{}}}
 	recovered, err := catalog.Snapshot(context.Background(), true)
-	if err != nil || source.calls != 4 || recovered.Stale || recovered.Apps[0].Name != "Tars" || !recovered.UpdatedAt.Equal(now) {
+	if err != nil || source.calls != 4 || recovered.Stale || recovered.Apps[0].Name != "Files" || !recovered.UpdatedAt.Equal(now) {
 		t.Fatalf("recovered snapshot = %+v, calls %d, error %v", recovered, source.calls, err)
 	}
 }

@@ -17,7 +17,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-const annotationPrefix = "launcher.example.net/"
+const annotationPrefix = "homelab-launcher/"
 
 var httpRoutes = schema.GroupVersionResource{Group: "gateway.networking.k8s.io", Version: "v1", Resource: "httproutes"}
 
@@ -64,9 +64,6 @@ func (s *KubernetesSource) List(ctx context.Context) ([]App, error) {
 func normalizeRoutes(routes *unstructured.UnstructuredList) []App {
 	result := make([]App, 0, len(routes.Items))
 	for _, route := range routes.Items {
-		if route.GetName() == "homelab-dashboard-http" {
-			continue
-		}
 		annotations := route.GetAnnotations()
 		if strings.EqualFold(strings.TrimSpace(annotations[annotationPrefix+"enabled"]), "false") {
 			continue
@@ -75,16 +72,16 @@ func normalizeRoutes(routes *unstructured.UnstructuredList) []App {
 		if err != nil {
 			continue
 		}
-		internal := []string{}
+		hostnames := []string{}
 		seen := map[string]bool{}
 		for _, host := range hosts {
-			if !strings.HasSuffix(host, ".example.net") || len(validation.IsDNS1123Subdomain(host)) > 0 || seen[host] {
+			if len(validation.IsDNS1123Subdomain(host)) > 0 || seen[host] {
 				continue
 			}
-			internal = append(internal, host)
+			hostnames = append(hostnames, host)
 			seen[host] = true
 		}
-		if len(internal) == 0 {
+		if len(hostnames) == 0 {
 			continue
 		}
 		name := strings.TrimSpace(annotations[annotationPrefix+"name"])
@@ -96,8 +93,8 @@ func normalizeRoutes(routes *unstructured.UnstructuredList) []App {
 			group = "Apps"
 		}
 		result = append(result, App{
-			ID: route.GetNamespace() + "/" + route.GetName(), Name: name, URL: "https://" + internal[0],
-			Aliases: append([]string{}, internal[1:]...), Description: annotations[annotationPrefix+"description"],
+			ID: route.GetNamespace() + "/" + route.GetName(), Name: name, URL: "https://" + hostnames[0],
+			Aliases: append([]string{}, hostnames[1:]...), Description: annotations[annotationPrefix+"description"],
 			Group: group, Icon: annotations[annotationPrefix+"icon"],
 		})
 	}
