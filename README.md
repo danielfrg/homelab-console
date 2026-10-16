@@ -4,7 +4,6 @@ A read-only launchpad for finding and opening applications discovered from
 Kubernetes Gateway API HTTPRoutes. Route annotations supply presentation metadata;
 there is no separate app inventory.
 
-<!-- Add a screenshot at docs/screenshots/homepage.png. -->
 ![Homelab Launcher](docs/screenshots/homepage.png)
 
 ## Installation
