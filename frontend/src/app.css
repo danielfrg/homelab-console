@@ -111,10 +111,6 @@
 
 @media (max-width: 700px) {
   .poster-launcher { padding: 0 22px 36px; }
-  .directory-header { padding: 28px 0; flex-direction: column; align-items: flex-start; gap: 22px; }
-  .directory-header h1 { font-size: 44px; }
-  .directory-controls { width: 100%; }
-  .directory-search { width: 100%; }
   .directory-content { padding-top: 28px; }
   .app-art { padding: 20px 16px 12px; min-height: 76px; }
   .app-details { padding: 0 16px 18px; height: 86px; }
@@ -144,11 +140,11 @@ button, input { font: inherit; touch-action: manipulation; }
 .directory-notice { border-radius: var(--radius-md); }
 .directory-search .kit-text-input:focus-within { outline: none; border-color: var(--ring); box-shadow: inset 0 0 0 1px var(--ring); }
 .directory-search .kit-text-input__control:focus-visible { outline: none; }
-@media (max-width: 700px) {
+@media (max-width: 640px) {
  .poster-launcher { padding: 0 16px 40px; }
- .directory-header { padding: 0; flex-direction: row; flex-wrap: wrap; gap: 16px; margin-bottom: 22px; }
- .directory-header h1 { font-size: .875rem; padding-top: 24px; }
- .directory-controls { padding-bottom: 16px; }
+ .directory-header { gap: 16px; margin-bottom: 22px; }
+ .directory-header h1 { font-size: .875rem; line-height: 20px; }
+ .directory-controls { flex: 1; }
  .directory-search { flex: 1; width: auto; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }

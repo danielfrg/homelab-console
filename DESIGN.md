@@ -31,6 +31,8 @@ preferences respected. Phone layouts must not widen the page.
 Keep the compact wordmark, theme control, search, and grouped portrait grid.
 Center the main container with a 1344px maximum width and 32px desktop side
 padding, matching Golinks and CI View.
+Use an 88px header and begin the content at 128px on desktop, or 110px at
+640px and below, matching those applications.
 The grid fills the available width with at least two columns, adding columns
 to keep 2:3 posters at most 250px tall (about 167px wide). Cards share subtle
 borders; hover changes the surface and highlights all four edges, including
