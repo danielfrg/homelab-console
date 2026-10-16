@@ -29,8 +29,12 @@ preferences respected. Phone layouts must not widen the page.
 ## Application Patterns
 
 Keep the compact wordmark, theme control, search, and grouped portrait grid.
-The grid adapts from five columns to four, three, and two. Cards share subtle
-borders; hover changes the surface quietly, without motion or elevation.
+Center the main container with a 1344px maximum width and 32px desktop side
+padding, matching Golinks and CI View.
+The grid fills the available width with at least two columns, adding columns
+to keep 2:3 posters at most 250px tall (about 167px wide). Cards share subtle
+borders; hover changes the surface and highlights all four edges, including
+the rounded outer grid boundary, without motion or elevation.
 
 Each card is one new-tab link with an icon or initials, app name, and split
 hostname. Descriptions remain searchable and available as tooltips. Preserve

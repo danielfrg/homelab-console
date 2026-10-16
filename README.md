@@ -71,6 +71,7 @@ Icons use dashboard-icons names or `mdi-` names for Material Design icons.
 | --- | --- | --- |
 | `HOMELAB_LAUNCHER_ADDR` | `127.0.0.1:8080` | HTTP listen address |
 | `HOMELAB_LAUNCHER_API_TARGET` | `http://127.0.0.1:8080` | Frontend development proxy |
+| `HOMELAB_LAUNCHER_FRONTEND_PORT` | `5173` | Frontend development listen port |
 | `KUBECONFIG` | Standard kubeconfig loading | Local Kubernetes credentials |
 
 Search covers names, descriptions, groups, primary hostnames, and aliases.
@@ -85,6 +86,20 @@ during cluster API outages.
 ## Development
 
 Requires Go 1.25, Node 26, pnpm 10, and just.
+
+The API needs a working Kubernetes context with permission to list HTTPRoutes.
+If your credentials are outside the default kubeconfig, or another project uses
+the default ports, create a root `.env` file (ignored by Git):
+
+```dotenv
+KUBECONFIG=/path/to/kubeconfig
+HOMELAB_LAUNCHER_ADDR=127.0.0.1:8081
+HOMELAB_LAUNCHER_API_TARGET=http://127.0.0.1:8081
+HOMELAB_LAUNCHER_FRONTEND_PORT=5174
+```
+
+`just` loads this file for both commands. With these example ports, open
+[http://127.0.0.1:5174](http://127.0.0.1:5174).
 
 ```zsh
 just install
