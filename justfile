@@ -1,14 +1,25 @@
+set dotenv-load := true
+
+install:
+    pnpm --dir frontend install --frozen-lockfile
+
 api:
     go run ./cmd/homelab-launcher
 
 frontend:
     pnpm --dir frontend dev
 
-build:
-    pnpm --dir frontend install --frozen-lockfile
+check:
+    go test -race ./...
+    go vet ./...
+    pnpm --dir frontend test
+    pnpm --dir frontend check
+
+build: install
     pnpm --dir frontend test
     pnpm --dir frontend check
     pnpm --dir frontend build
+    test -s frontend/dist/index.html
     rm -rf internal/web/dist
     mkdir -p internal/web/dist
     touch internal/web/dist/.keep
@@ -17,3 +28,9 @@ build:
     go test ./...
     go vet ./...
     CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o homelab-launcher ./cmd/homelab-launcher
+
+image:
+    docker build -t homelab-launcher:local .
+
+image-check: image
+    bash scripts/container-smoke.sh homelab-launcher:local

@@ -2,8 +2,7 @@
   import { onMount } from "svelte";
   import { fetchApps, filterApps, groupApps, type AppSnapshot } from "$lib/apps.js";
   import AppCard from "$lib/components/AppCard.svelte";
-  import { Button } from "$lib/components/ui/button/index.js";
-  import { Input } from "$lib/components/ui/input/index.js";
+  import { Button, SearchInput, ThemeToggle } from "@kenn-io/kit-ui";
 
   let snapshot = $state<AppSnapshot | null>(null);
   let query = $state("");
@@ -44,20 +43,10 @@
   <header class="directory-header">
     <h1>Homelab</h1>
     <div class="directory-controls">
-      <label for="app-search" class="sr-only">Search apps</label>
+      <ThemeToggle />
       <div class="directory-search">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.3-4.3" />
-        </svg>
-        <Input
-          id="app-search"
-          type="search"
-          bind:value={query}
-          placeholder="Search apps or hosts"
-          autocomplete="off"
-          aria-controls="app-directory"
-        />
+        <SearchInput block ariaLabel="Search apps" placeholder="Search apps or hosts"
+          value={query} oninput={(value) => query = value} />
       </div>
     </div>
   </header>
@@ -65,14 +54,14 @@
   {#if error}
     <div role="alert" class="directory-notice directory-error">
       <p>{error}</p>
-      <Button variant="outline" disabled={loading} onclick={() => void loadApps(true)}>
+      <Button surface="outline" disabled={loading} onclick={() => void loadApps(true)}>
         {loading ? "Retrying..." : "Retry"}
       </Button>
     </div>
   {:else if snapshot?.stale}
     <div role="status" class="directory-notice">
       <p>The app list may be stale. Showing the last successful discovery.</p>
-      <Button variant="outline" disabled={loading} onclick={() => void loadApps(true)}>
+      <Button surface="outline" disabled={loading} onclick={() => void loadApps(true)}>
         {loading ? "Retrying..." : "Retry"}
       </Button>
     </div>

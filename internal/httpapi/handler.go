@@ -72,10 +72,13 @@ func NewHandler(assets fs.FS, catalog AppCatalog) http.Handler {
 		return &AppsOutput{Body: snapshot}, nil
 	})
 
-	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
+	probe := func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		_, _ = w.Write([]byte("ok\n"))
-	})
+	}
+	mux.HandleFunc("GET /healthz", probe)
+	mux.HandleFunc("GET /readyz", probe)
 	static := web.Handler(assets)
 	mux.Handle("GET /", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Reserve the decoded API namespace even when an escaped slash misses a mux pattern.

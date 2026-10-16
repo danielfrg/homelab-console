@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { appHostnameParts, filterApps, groupApps, parseSnapshot, type App } from "../src/lib/apps.ts";
+import { appHostnameParts, filterApps, groupApps, parseSnapshot, type App } from "./apps.ts";
 
 function app(overrides: Partial<App> = {}): App {
   return {

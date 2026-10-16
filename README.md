@@ -1,45 +1,48 @@
 # Homelab Launcher
 
-A launchpad for finding and opening applications discovered from Kubernetes HTTPRoutes.
+A read-only launchpad for finding and opening applications discovered from
+Kubernetes Gateway API HTTPRoutes. Route annotations supply presentation metadata;
+there is no separate app inventory.
 
-Apps are discovered directly from Kubernetes HTTPRoutes and their metadata.
+<!-- Add a screenshot at docs/screenshots/homepage.png. -->
+![Homelab Launcher](docs/screenshots/homepage.png)
 
-![Homelab Launcher screenshot](docs/screenshot.png)
+## Installation
 
-## Local development
+### Docker
 
-Requires Go 1.25, Node 26, pnpm 10, just, and a kubeconfig with permission to
-list HTTPRoutes across namespaces:
+For local use with a kubeconfig whose API endpoint is reachable from the container:
 
-```shell
-pnpm --dir frontend install --frozen-lockfile
+```zsh
+docker run -d --name homelab-launcher \
+  -p 127.0.0.1:8080:8080 \
+  -v "${HOME}/.kube:/kube:ro" \
+  -e KUBECONFIG=/kube/config \
+  ghcr.io/danielfrg/homelab-launcher:latest
 ```
 
-Start the API in one terminal:
+Open [http://localhost:8080](http://localhost:8080). The container runs as
+UID/GID 65532; mounted credentials must be readable by that user. Kubeconfigs
+that reference external certificate files need those files mounted too. Exec
+credential plugins require a custom image containing the plugin.
 
-```shell
-just api
+In Kubernetes, use a dedicated ServiceAccount with a ClusterRole granting only
+`list` on `httproutes` in `gateway.networking.k8s.io`, bound through a
+ClusterRoleBinding. Mount its token for in-cluster discovery. The container
+listens on port 8080.
+
+### Standalone
+
+Build from source using the [build instructions](#build), then run:
+
+```zsh
+./homelab-launcher
 ```
 
-Start the UI in another:
+Open [http://127.0.0.1:8080](http://127.0.0.1:8080). Kubernetes access uses
+the current kubeconfig context; `KUBECONFIG` can select another configuration.
 
-```shell
-just frontend
-```
-
-Open http://127.0.0.1:5173. The UI proxies API requests to
-http://127.0.0.1:8080. Kubernetes access uses the current kubeconfig context;
-`KUBECONFIG` can select a different configuration.
-
-## Build
-
-Builds a Go executable with the embedded frontend.
-
-```shell
-just build
-```
-
-## Discovery
+## Usage
 
 The launcher lists Gateway API v1 HTTPRoutes across namespaces. Each route
 becomes one app: its first valid concrete hostname forms the HTTPS link, and
@@ -63,17 +66,72 @@ Set `homelab-launcher/enabled: "false"` to hide any route, including the
 launcher's own route. Unannotated routes are included, with group `Apps`.
 Icons use dashboard-icons names or `mdi-` names for Material Design icons.
 
-## Deployment
+## Configuration
 
-GitHub Actions builds public Linux AMD64 and ARM64 images at
-`ghcr.io/danielfrg/homelab-launcher`. Pin a published digest in your Deployment.
-The container serves the UI and API on port 8080 as a nonroot user.
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `HOMELAB_LAUNCHER_ADDR` | `127.0.0.1:8080` | HTTP listen address |
+| `HOMELAB_LAUNCHER_API_TARGET` | `http://127.0.0.1:8080` | Frontend development proxy |
+| `KUBECONFIG` | Standard kubeconfig loading | Local Kubernetes credentials |
 
-Use a dedicated ServiceAccount with a ClusterRole granting only `list` on
-`httproutes` in `gateway.networking.k8s.io`, bound through a ClusterRoleBinding.
-The pod needs its ServiceAccount token mounted for in-cluster discovery.
-Readiness and liveness probes can use `/healthz`.
+Search covers names, descriptions, groups, primary hostnames, and aliases.
+Discovery caches results for 30 seconds and keeps the last successful snapshot
+when a refresh fails. Retry bypasses the cache. Discovery does not check app health.
+API documentation is at `/api/docs`.
 
-`HOMELAB_LAUNCHER_ADDR` optionally changes the listen address. For local frontend
-development, `HOMELAB_LAUNCHER_API_TARGET` optionally changes the API proxy target.
-Neither setting configures which domains or apps are discovered.
+Liveness is `/healthz`; readiness is `/readyz`. Both check the running HTTP
+service independently of Kubernetes availability, keeping stale links usable
+during cluster API outages.
+
+## Development
+
+Requires Go 1.25, Node 26, pnpm 10, and just.
+
+```zsh
+just install
+just api
+```
+
+In another terminal:
+
+```zsh
+just frontend
+```
+
+Open [http://127.0.0.1:5173](http://127.0.0.1:5173). Vite proxies API
+requests to the Go server. Run `just check` for Go race tests, vet, frontend
+tests, and Svelte/TypeScript checks.
+
+The repositories share this structure:
+
+```text
+cmd/<app>/              Configuration and server lifecycle
+internal/               Go application packages
+internal/httpapi/       HTTP API and health probes
+internal/web/           Embedded frontend and static serving
+frontend/src/theme.css  Shared palette, typography, and font definitions
+frontend/src/app.css    Application layouts and interactions
+scripts/                Container smoke test
+docs/screenshots/       README screenshots
+```
+
+The shared theme uses self-hosted Inter and IBM Plex Mono, with dark, light,
+and system preferences. Dark is the default; the header theme control saves
+your choice. Keep `frontend/src/theme.css` identical across these projects.
+Local plans, agent reports, and design-tool state stay out of Git.
+
+## Build
+
+```zsh
+just build
+```
+
+The executable embeds the built frontend and needs no Node runtime. Build and
+smoke-test a local container with:
+
+```zsh
+just image-check
+```
+
+Published images support Linux AMD64 and ARM64. `latest` tracks `main`;
+`sha-<commit>` tags and image digests can pin a deployment.

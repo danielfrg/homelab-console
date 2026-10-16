@@ -278,3 +278,21 @@ func TestAppsOpenAPI(t *testing.T) {
 		t.Fatalf("aliases schema type = %v, want non-nullable array", typ)
 	}
 }
+
+// Probes stay usable during upstream outages and never trigger collection.
+func TestOperationalProbes(t *testing.T) {
+	h := NewHandler(nil, nil)
+	for _, path := range []string{"/healthz", "/readyz"} {
+		for _, method := range []string{http.MethodGet, http.MethodHead} {
+			w := httptest.NewRecorder()
+			h.ServeHTTP(w, httptest.NewRequest(method, path, nil))
+			if w.Code != http.StatusOK {
+				t.Errorf("%s %s: status %d", method, path, w.Code)
+			}
+			if w.Header().Get("Cache-Control") != "no-store" {
+				t.Errorf("%s: probes must not be cached", path)
+			}
+		}
+	}
+
+}
