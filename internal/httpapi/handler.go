@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/danielfrg/homelab-launcher/internal/apps"
+	"github.com/danielfrg/homelab-launcher/internal/mcp"
 	"github.com/danielfrg/homelab-launcher/internal/web"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -35,8 +36,9 @@ type AppsOutput struct {
 	Body apps.Snapshot
 }
 
-func NewHandler(assets fs.FS, catalog AppCatalog) http.Handler {
+func NewHandler(assets fs.FS, catalog AppCatalog, mcpHosts ...string) http.Handler {
 	mux := http.NewServeMux()
+	mcpHandler := mcp.NewHandler(catalog, mcpHosts)
 	config := huma.DefaultConfig("Homelab API", "0.1.0")
 	config.OpenAPIPath = "/api/openapi"
 	config.DocsPath = "/api/docs"
@@ -90,6 +92,10 @@ func NewHandler(assets fs.FS, catalog AppCatalog) http.Handler {
 	}))
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/mcp" {
+			mcpHandler.ServeHTTP(w, r)
+			return
+		}
 		start := time.Now()
 		mux.ServeHTTP(w, r)
 		log.Printf("%s %s %s", r.Method, r.URL.Path, time.Since(start).Round(time.Microsecond))

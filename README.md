@@ -83,6 +83,27 @@ Liveness is `/healthz`; readiness is `/readyz`. Both check the running HTTP
 service independently of Kubernetes availability, keeping stale links usable
 during cluster API outages.
 
+### MCP
+
+The native Streamable HTTP endpoint is `/mcp`. Tools: `search_apps`, `get_app`.
+Tools read the route-derived directory through the normal catalog cache. Results preserve aliases, literal groups, update time, and stale status. Discovery does not imply destination health; tools never modify routes or probe destinations.
+
+List tools accept `limit` (default 20, maximum 100) and nonnegative `offset`,
+returning `total` and nullable `next_offset`. Responses are structured JSON.
+Connect a remote MCP client using its Streamable HTTP transport, for example:
+
+```json
+{"url": "http://127.0.0.1:8080/mcp", "transport": "streamable-http"}
+```
+
+MCP accepts localhost by default. For a proxy or container network, set
+`HOMELAB_LAUNCHER_MCP_ALLOWED_HOSTS` to a comma-separated list of exact hostnames
+or IP addresses, such as `app.example.net,app.default.svc.cluster.local`.
+Do not include schemes, ports, or wildcards. Invalid values fail startup.
+Browser origins must match the request host and port. Requests use POST with a
+1 MiB body limit; responses use `Cache-Control: no-store`. The endpoint has no
+built-in authentication: use a trusted network or an authenticated proxy.
+
 ## Development
 
 Requires Go 1.25, Node 26, pnpm 10, and just.

@@ -11,12 +11,17 @@ import (
 
 	"github.com/danielfrg/homelab-launcher/internal/apps"
 	"github.com/danielfrg/homelab-launcher/internal/httpapi"
+	"github.com/danielfrg/homelab-launcher/internal/mcp"
 	"github.com/danielfrg/homelab-launcher/internal/web"
 )
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	hosts, err := mcp.ParseAllowedHosts(os.Getenv("HOMELAB_LAUNCHER_MCP_ALLOWED_HOSTS"))
+	if err != nil {
+		log.Fatal(err)
+	}
 	assets, err := web.Assets()
 	if err != nil {
 		log.Fatal(err)
@@ -36,7 +41,7 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Printf("Homelab listening on %s", addr)
-	if err := serve(ctx, listener, httpapi.NewHandler(assets, catalog), 5*time.Second); err != nil {
+	if err := serve(ctx, listener, httpapi.NewHandler(assets, catalog, hosts...), 5*time.Second); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -38,3 +38,7 @@ inventories, and health indicators inferred from route discovery.
 Support labeled search, keyboard-reachable links, visible focus, light and dark
 themes, reduced motion, and phone layouts. Keep full app names and hostnames
 available when visible card text is truncated.
+
+## Agent Access
+
+Tools read the route-derived directory through the normal catalog cache. Results preserve aliases, literal groups, update time, and stale status. Discovery does not imply destination health; tools never modify routes or probe destinations.
