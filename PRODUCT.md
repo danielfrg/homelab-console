@@ -1,24 +1,29 @@
 # Product
 
-## Register
-
-product
-
 ## Users
 
 Kubernetes users who want to find and open their routed applications from a
 desktop browser or phone.
 
+Assumes deployment on a trusted network; there is no auth.
+
 ## Product Purpose
 
 Make applications easy to find without remembering hostnames or maintaining a
 second inventory. Discover links and presentation metadata from HTTPRoutes.
+
 Success means recognizing an app, finding it by name or hostname, and opening
 it quickly, including when a refresh fails.
 
 ## Brand Personality
 
 Spare, familiar, and practical. App identity and clear links carry the directory.
+
+### Tone
+
+Do not be overly explicit about explaining every part of the UI with text. It
+should be intuitive. Only add explanatory messages when it's needed, such as
+failed or stale discovery and empty results.
 
 ## Anti-references
 
@@ -32,13 +37,12 @@ inventories, and health indicators inferred from route discovery.
 - Preserve hostname aliases and use initials when an icon cannot load.
 - Retain usable links and identify stale discovery after a failed refresh.
 - Keep loading, empty inventory, no matches, and request failures distinct.
-
-## Accessibility & Inclusion
-
-Support labeled search, keyboard-reachable links, visible focus, light and dark
-themes, reduced motion, and phone layouts. Keep full app names and hostnames
-available when visible card text is truncated.
+- Keep full app names and hostnames available when visible card text is
+  truncated, with labeled search, keyboard-reachable links, and visible focus.
 
 ## Agent Access
 
-Tools read the route-derived directory through the normal catalog cache. Results preserve aliases, literal groups, update time, and stale status. Discovery does not imply destination health; tools never modify routes or probe destinations.
+Agents browse the same route-derived directory through typed MCP tools,
+reading the normal catalog cache. Results preserve aliases, literal groups,
+update time, and stale status. Discovery does not imply destination health;
+tools never modify routes or probe destinations.
