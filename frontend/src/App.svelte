@@ -14,17 +14,6 @@
   const groups = $derived(groupApps(visibleApps));
   const total = $derived(snapshot?.apps.length ?? 0);
 
-  function sizePosterGrid(node: HTMLDivElement) {
-    // Include the shared one-pixel border in the 2:3 poster width.
-    const maxCardWidth = 250 * 2 / 3 + 1;
-    const observer = new ResizeObserver(([entry]) => {
-      const columns = Math.max(2, Math.ceil(entry.contentRect.width / maxCardWidth));
-      node.style.setProperty("--poster-columns", String(columns));
-    });
-    observer.observe(node);
-    return { destroy: () => observer.disconnect() };
-  }
-
   async function loadApps(refresh = false): Promise<void> {
     if (loading) return;
     loading = true;
@@ -50,7 +39,7 @@
   });
 </script>
 
-<main class="poster-launcher">
+<main class="app-launcher">
   <header class="directory-header">
     <h1>Homelab</h1>
     <div class="directory-controls">
@@ -98,7 +87,7 @@
             {#if group.name !== "Apps"}
               <h2 class="directory-group-title">{group.name}</h2>
             {/if}
-            <div class="poster-grid" use:sizePosterGrid>
+            <div class="app-grid">
               {#each group.apps as app (app.id)}
                 <AppCard {app} />
               {/each}

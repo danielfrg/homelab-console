@@ -4,6 +4,7 @@ import '@kenn-io/kit-ui/theme.css';
 import './theme.css';
 import App from './App.svelte';
 import './app.css';
+import './components.css';
 
 initTheme({ storageKey: 'homelab-launcher-theme' });
 // Default to charcoal while respecting explicit light and system preferences.
