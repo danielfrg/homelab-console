@@ -27,4 +27,4 @@ internal/web/dist/*
 *.pem
 *.p12
 .DS_Store
-homelab-launcher
+homelab-console

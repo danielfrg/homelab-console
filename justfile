@@ -4,7 +4,7 @@ install:
     pnpm --dir frontend install --frozen-lockfile
 
 api:
-    go run ./cmd/homelab-launcher
+    go run ./cmd/homelab-console
 
 frontend:
     pnpm --dir frontend dev
@@ -27,10 +27,10 @@ build: install
     test -s internal/web/dist/index.html
     go test ./...
     go vet ./...
-    CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o homelab-launcher ./cmd/homelab-launcher
+    CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o homelab-console ./cmd/homelab-console
 
 image:
-    docker build -t homelab-launcher:local .
+    docker build -t homelab-console:local .
 
 image-check: image
-    bash scripts/container-smoke.sh homelab-launcher:local
+    bash scripts/container-smoke.sh homelab-console:local

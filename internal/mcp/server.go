@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/danielfrg/homelab-launcher/internal/cluster"
+	"github.com/danielfrg/homelab-console/internal/cluster"
 	sdk "github.com/modelcontextprotocol/go-sdk/mcp"
 )
 

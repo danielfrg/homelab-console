@@ -151,3 +151,15 @@ current-context: local-test
 		t.Fatal("current context or secure local credentials were not loaded correctly")
 	}
 }
+
+func TestConsoleAnnotationPrefix(t *testing.T) {
+	list := &unstructured.UnstructuredList{Items: []unstructured.Unstructured{
+		route("apps", "new-http", []string{"new.example.test"}, map[string]string{"homelab-console/name": "New", "homelab-console/group": "Tools"}),
+		route("apps", "both-http", []string{"both.example.test"}, map[string]string{"homelab-launcher/name": "Old", "homelab-console/name": "Preferred"}),
+		route("apps", "hidden-http", []string{"hidden.example.test"}, map[string]string{"homelab-console/enabled": "false"}),
+	}}
+	got := normalizeRoutes(list)
+	if len(got) != 2 || got[0].Name != "New" || got[0].Group != "Tools" || got[1].Name != "Preferred" {
+		t.Fatalf("%+v", got)
+	}
+}

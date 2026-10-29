@@ -8,7 +8,7 @@ through MCP. It also keeps the launchpad: app links are discovered from Gateway
 API HTTPRoutes, and route annotations supply presentation metadata, so there is
 no separate app inventory to maintain.
 
-![Homelab Launcher](docs/screenshots/homepage.png)
+![Homelab Console](docs/screenshots/homepage.png)
 
 ## Installation
 
@@ -22,7 +22,7 @@ docker run -it \
   -p 127.0.0.1:8080:8080 \
   -v "${HOME}/.kube:/kube:ro" \
   -e KUBECONFIG=/kube/config \
-  ghcr.io/danielfrg/homelab-launcher:latest
+  ghcr.io/danielfrg/homelab-console:latest
 ```
 
 - Open [http://localhost:8080](http://localhost:8080)
@@ -45,7 +45,7 @@ Build a single executable with `just build` (see [Development](#development)),
 then run:
 
 ```zsh
-./homelab-launcher
+./homelab-console
 ```
 
 Open [http://127.0.0.1:8080](http://127.0.0.1:8080). Kubernetes access uses
@@ -53,7 +53,7 @@ the current kubeconfig context; `KUBECONFIG` can select another configuration.
 
 ## Usage
 
-Homelab Launcher lists Gateway API v1 HTTPRoutes across namespaces. Each route
+Homelab Console lists Gateway API v1 HTTPRoutes across namespaces. Each route
 becomes one app: its first valid concrete hostname forms the HTTPS link, and
 additional hostnames are searchable aliases. Hostless routes and wildcard
 hostnames are skipped because they do not identify a concrete URL. HTTPS is
@@ -65,14 +65,16 @@ presentation:
 ```yaml
 metadata:
   annotations:
-    homelab-launcher/name: "File Browser"
-    homelab-launcher/description: "Shared files"
-    homelab-launcher/group: "Tools"
-    homelab-launcher/icon: "mdi-folder"
+    homelab-console/name: "File Browser"
+    homelab-console/description: "Shared files"
+    homelab-console/group: "Tools"
+    homelab-console/icon: "mdi-folder"
 ```
 
-Set `homelab-launcher/enabled: "false"` to hide any route, including Homelab
-Launcher's own route. Unannotated routes are included, with group `Apps`.
+Set `homelab-console/enabled: "false"` to hide any route, including Homelab
+Console's own route. Unannotated routes are included, with group `Apps`. The
+original `homelab-launcher/` prefix still works; `homelab-console/` wins when a
+route has both.
 Icons use dashboard-icons names or `mdi-` names for Material Design icons.
 
 Search covers names, descriptions, groups, primary hostnames, and aliases.
@@ -107,7 +109,7 @@ Agents use the MCP endpoint at `/mcp` (Streamable HTTP). Tools: `get_overview`,
 restart is enabled).
 
 MCP only accepts requests addressed to localhost. Behind a proxy or container
-network, set `HOMELAB_LAUNCHER_MCP_ALLOWED_HOSTS` to your public hostname.
+network, set `HOMELAB_CONSOLE_MCP_ALLOWED_HOSTS` to your public hostname.
 
 ### Security
 
@@ -121,10 +123,10 @@ restart annotation and events; never grant this service access to Secrets.
 
 | Variable                             | Default                                      |
 | ------------------------------------ | -------------------------------------------- |
-| `HOMELAB_LAUNCHER_ADDR`              | `127.0.0.1:8080`                             |
-| `HOMELAB_LAUNCHER_MCP_ALLOWED_HOSTS` | unset (MCP allows localhost only)            |
-| `HOMELAB_LAUNCHER_API_TARGET`        | `http://127.0.0.1:8080` (frontend dev proxy) |
-| `HOMELAB_LAUNCHER_FRONTEND_PORT`     | `5173` (frontend dev server)                 |
+| `HOMELAB_CONSOLE_ADDR`              | `127.0.0.1:8080`                             |
+| `HOMELAB_CONSOLE_MCP_ALLOWED_HOSTS` | unset (MCP allows localhost only)            |
+| `HOMELAB_CONSOLE_API_TARGET`        | `http://127.0.0.1:8080` (frontend dev proxy) |
+| `HOMELAB_CONSOLE_FRONTEND_PORT`     | `5173` (frontend dev server)                 |
 | `HOMELAB_CONSOLE_RESTART_ENABLED`    | `true`; only `false` turns restart off       |
 | `KUBECONFIG`                         | standard kubeconfig loading                  |
 
@@ -145,9 +147,9 @@ loads for both commands:
 
 ```dotenv
 KUBECONFIG=/path/to/kubeconfig
-HOMELAB_LAUNCHER_ADDR=127.0.0.1:8081
-HOMELAB_LAUNCHER_API_TARGET=http://127.0.0.1:8081
-HOMELAB_LAUNCHER_FRONTEND_PORT=5174
+HOMELAB_CONSOLE_ADDR=127.0.0.1:8081
+HOMELAB_CONSOLE_API_TARGET=http://127.0.0.1:8081
+HOMELAB_CONSOLE_FRONTEND_PORT=5174
 ```
 
 Start the API and Frontend in two terminals:

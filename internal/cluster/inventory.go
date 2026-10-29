@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/danielfrg/homelab-launcher/internal/apps"
+	"github.com/danielfrg/homelab-console/internal/apps"
 )
 
 const snapshotTTL = 15 * time.Second

@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/danielfrg/homelab-launcher/internal/cluster"
-	"github.com/danielfrg/homelab-launcher/internal/mcp"
+	"github.com/danielfrg/homelab-console/internal/cluster"
+	"github.com/danielfrg/homelab-console/internal/mcp"
 	"github.com/danielgtaylor/huma/v2"
 )
 

@@ -35,4 +35,4 @@ coverage.*
 .DS_Store
 
 # Application files
-/homelab-launcher
+/homelab-console

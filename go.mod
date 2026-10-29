@@ -1,4 +1,4 @@
-module github.com/danielfrg/homelab-launcher
+module github.com/danielfrg/homelab-console
 
 go 1.25.0
 

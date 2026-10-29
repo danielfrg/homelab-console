@@ -5,7 +5,7 @@ package cluster
 import (
 	"time"
 
-	"github.com/danielfrg/homelab-launcher/internal/apps"
+	"github.com/danielfrg/homelab-console/internal/apps"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
