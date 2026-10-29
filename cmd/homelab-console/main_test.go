@@ -10,7 +10,7 @@ func TestListenAddr(t *testing.T) {
 		{"launcher", ":8081", ":8081"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Setenv("HOMELAB_LAUNCHER_ADDR", tc.launcher)
+			t.Setenv("HOMELAB_CONSOLE_ADDR", tc.launcher)
 			if got := listenAddr(); got != tc.want {
 				t.Fatalf("listenAddr() = %q, want %q", got, tc.want)
 			}

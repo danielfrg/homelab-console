@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/danielfrg/homelab-launcher/internal/apps"
+	"github.com/danielfrg/homelab-console/internal/apps"
 )
 
 type stubReader struct {

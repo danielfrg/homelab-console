@@ -3,8 +3,8 @@
 Homelab Console is a self-hosted console for a Kubernetes homelab: Argo CD
 apps, workloads, pods, nodes, logs, restart, and a launchpad of app links.
 It builds one Go binary that serves a Huma HTTP API, an MCP endpoint, and an
-embedded Svelte 5 frontend. The repo, module, and binary still use the
-`homelab-launcher` name until a later rename.
+embedded Svelte 5 frontend. It was renamed from Homelab Launcher; route
+annotations under the old `homelab-launcher/` prefix are still read.
 
 Read `PRODUCT.md` for user intent and `DESIGN.md` before changing the frontend.
 

@@ -17,15 +17,15 @@ COPY --from=frontend /src/dist/ ./internal/web/dist/
 RUN test -s internal/web/dist/index.html && go test ./... && go vet ./...
 ARG TARGETOS
 ARG TARGETARCH
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o /out/homelab-launcher ./cmd/homelab-launcher
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o /out/homelab-console ./cmd/homelab-console
 
 FROM gcr.io/distroless/static-debian13:nonroot@sha256:e2e927ec666bae08560abb3c55d0659eceabb657f56b6782ab500a9fc7f555e3
-COPY --from=build /out/homelab-launcher /homelab-launcher
+COPY --from=build /out/homelab-console /homelab-console
 ARG VCS_REF
-LABEL org.opencontainers.image.source="https://github.com/danielfrg/homelab-launcher" \
+LABEL org.opencontainers.image.source="https://github.com/danielfrg/homelab-console" \
       org.opencontainers.image.revision=$VCS_REF \
       org.opencontainers.image.licenses="Apache-2.0"
-ENV HOMELAB_LAUNCHER_ADDR=:8080
+ENV HOMELAB_CONSOLE_ADDR=:8080
 EXPOSE 8080
 USER 65532:65532
-ENTRYPOINT ["/homelab-launcher"]
+ENTRYPOINT ["/homelab-console"]

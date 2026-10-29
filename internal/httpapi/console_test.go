@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/danielfrg/homelab-launcher/internal/cluster"
+	"github.com/danielfrg/homelab-console/internal/cluster"
 )
 
 type consoleStub struct {

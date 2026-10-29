@@ -11,10 +11,10 @@ export default defineConfig({
   },
   server: {
     host: "127.0.0.1",
-    port: Number(process.env.HOMELAB_LAUNCHER_FRONTEND_PORT || 5173),
+    port: Number(process.env.HOMELAB_CONSOLE_FRONTEND_PORT || 5173),
     strictPort: true,
     proxy: {
-      "/api": process.env.HOMELAB_LAUNCHER_API_TARGET || "http://127.0.0.1:8080",
+      "/api": process.env.HOMELAB_CONSOLE_API_TARGET || "http://127.0.0.1:8080",
     },
   },
 });

@@ -17,7 +17,19 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-const annotationPrefix = "homelab-launcher/"
+// Route annotations use the homelab-console/ prefix; the original
+// homelab-launcher/ prefix is still read so existing routes keep working.
+const (
+	annotationPrefix       = "homelab-console/"
+	legacyAnnotationPrefix = "homelab-launcher/"
+)
+
+func annotation(annotations map[string]string, key string) string {
+	if value, ok := annotations[annotationPrefix+key]; ok {
+		return value
+	}
+	return annotations[legacyAnnotationPrefix+key]
+}
 
 var httpRoutes = schema.GroupVersionResource{Group: "gateway.networking.k8s.io", Version: "v1", Resource: "httproutes"}
 
@@ -45,7 +57,7 @@ func KubernetesConfig() (*rest.Config, error) {
 func NewKubernetesSource(config *rest.Config) (*KubernetesSource, error) {
 	bounded := rest.CopyConfig(config)
 	bounded.Timeout = requestTimeout
-	bounded.UserAgent = "homelab-launcher"
+	bounded.UserAgent = "homelab-console"
 	client, err := dynamic.NewForConfig(bounded)
 	if err != nil {
 		return nil, err
@@ -65,7 +77,7 @@ func normalizeRoutes(routes *unstructured.UnstructuredList) []App {
 	result := make([]App, 0, len(routes.Items))
 	for _, route := range routes.Items {
 		annotations := route.GetAnnotations()
-		if strings.EqualFold(strings.TrimSpace(annotations[annotationPrefix+"enabled"]), "false") {
+		if strings.EqualFold(strings.TrimSpace(annotation(annotations, "enabled")), "false") {
 			continue
 		}
 		hosts, _, err := unstructured.NestedStringSlice(route.Object, "spec", "hostnames")
@@ -84,18 +96,18 @@ func normalizeRoutes(routes *unstructured.UnstructuredList) []App {
 		if len(hostnames) == 0 {
 			continue
 		}
-		name := strings.TrimSpace(annotations[annotationPrefix+"name"])
+		name := strings.TrimSpace(annotation(annotations, "name"))
 		if name == "" {
 			name = humanize(strings.TrimSuffix(route.GetName(), "-http"))
 		}
-		group := strings.TrimSpace(annotations[annotationPrefix+"group"])
+		group := strings.TrimSpace(annotation(annotations, "group"))
 		if group == "" {
 			group = "Apps"
 		}
 		result = append(result, App{
 			ID: route.GetNamespace() + "/" + route.GetName(), Name: name, URL: "https://" + hostnames[0],
-			Aliases: append([]string{}, hostnames[1:]...), Description: annotations[annotationPrefix+"description"],
-			Group: group, Icon: annotations[annotationPrefix+"icon"],
+			Aliases: append([]string{}, hostnames[1:]...), Description: annotation(annotations, "description"),
+			Group: group, Icon: annotation(annotations, "icon"),
 		})
 	}
 	sort.Slice(result, func(i, j int) bool {

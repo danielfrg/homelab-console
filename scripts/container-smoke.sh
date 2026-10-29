@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 image_ref=${1:?usage: container-smoke.sh IMAGE}
-container="homelab-launcher-smoke-$$"
+container="homelab-console-smoke-$$"
 smoke_dir=$(mktemp -d)
 cleanup() {
   docker rm -f "$container" >/dev/null 2>&1 || true

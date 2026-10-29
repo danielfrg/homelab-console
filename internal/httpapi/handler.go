@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/danielfrg/homelab-launcher/internal/apps"
-	"github.com/danielfrg/homelab-launcher/internal/mcp"
-	"github.com/danielfrg/homelab-launcher/internal/web"
+	"github.com/danielfrg/homelab-console/internal/apps"
+	"github.com/danielfrg/homelab-console/internal/mcp"
+	"github.com/danielfrg/homelab-console/internal/web"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
