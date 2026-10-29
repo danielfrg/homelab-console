@@ -106,6 +106,7 @@ type Pod struct {
 	LastTermination *Termination `json:"last_termination,omitempty"`
 	StartedAt       *time.Time   `json:"started_at"`
 	Images          []string     `json:"images"`
+	Containers      []string     `json:"containers"`
 }
 
 type Termination struct {
