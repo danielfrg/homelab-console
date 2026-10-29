@@ -69,9 +69,9 @@ func pod(namespace, name, appLabel string, started time.Time) corev1.Pod {
 		ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: name, Labels: map[string]string{"app.kubernetes.io/name": appLabel}, CreationTimestamp: metav1.NewTime(started)},
 		Spec:       corev1.PodSpec{NodeName: "srv-nuc-02", Containers: []corev1.Container{{Name: appLabel, Image: "ghcr.io/example/" + appLabel + ":1"}}},
 		Status: corev1.PodStatus{
-			Phase:      corev1.PodRunning,
-			StartTime:  ptr(metav1.NewTime(started)),
-			Conditions: []corev1.PodCondition{{Type: corev1.PodReady, Status: corev1.ConditionTrue, LastTransitionTime: metav1.NewTime(started)}},
+			Phase:             corev1.PodRunning,
+			StartTime:         ptr(metav1.NewTime(started)),
+			Conditions:        []corev1.PodCondition{{Type: corev1.PodReady, Status: corev1.ConditionTrue, LastTransitionTime: metav1.NewTime(started)}},
 			ContainerStatuses: []corev1.ContainerStatus{{Name: appLabel, Ready: true, Image: "ghcr.io/example/" + appLabel + ":1"}},
 		},
 	}

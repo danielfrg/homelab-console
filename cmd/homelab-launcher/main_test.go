@@ -17,3 +17,11 @@ func TestListenAddr(t *testing.T) {
 		})
 	}
 }
+
+func TestRestartEnabledParsing(t *testing.T) {
+	for value, want := range map[string]bool{"": true, "FALSE ": false, "false": false, "0": true, "true": true} {
+		if got := restartEnabled(value); got != want {
+			t.Fatalf("restartEnabled(%q) = %v", value, got)
+		}
+	}
+}

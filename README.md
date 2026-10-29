@@ -1,9 +1,12 @@
-# Homelab Launcher
+# Homelab Console
 
-A launchpad for your Kubernetes apps. Ready for self-hosting.
+A small console for a Kubernetes homelab. Ready for self-hosting.
 
-Apps are discovered from Gateway API HTTPRoutes; route annotations supply
-presentation metadata, so there is no separate app inventory to maintain.
+It shows Argo CD apps with their workloads, pods, and nodes, reads recent
+logs, and can restart a workload, for people in the web UI and for agents
+through MCP. It also keeps the launchpad: app links are discovered from Gateway
+API HTTPRoutes, and route annotations supply presentation metadata, so there is
+no separate app inventory to maintain.
 
 ![Homelab Launcher](docs/screenshots/homepage.png)
 
@@ -77,10 +80,31 @@ Discovery caches results for 30 seconds and keeps the last successful snapshot
 when a refresh fails; Retry bypasses the cache. Discovery does not check app
 health. API documentation is at `/api/docs`.
 
+### Cluster view
+
+Apps are Argo CD Applications. Each app lists the Deployments and StatefulSets
+it manages, their pods, its links, and recent warning events. Problems flag
+crashing, pending, or not-ready pods, recent OOM kills and restarts, workloads
+short of ready replicas, and nodes that are not Ready or under pressure.
+Kubernetes status can look healthy while an app is broken, so logs are one
+click (or one tool call) away.
+
+### Restart
+
+Restart does what `kubectl rollout restart` does. Only Deployments and
+`RollingUpdate` StatefulSets that belong to an Argo CD app can be restarted.
+Opt a workload or a whole app out with the annotation
+`homelab-console/restart: "false"`; `OnDelete` workloads are never restarted.
+A restart is refused while the previous rollout is still in progress and after
+3 restarts of the same workload within an hour. Each restart is recorded as a
+Kubernetes event. Set `HOMELAB_CONSOLE_RESTART_ENABLED=false` to turn restart
+off.
+
 ### MCP
 
-Agents can browse the directory through the MCP endpoint at `/mcp`
-(Streamable HTTP). Tools: `search_apps` and `get_app`.
+Agents use the MCP endpoint at `/mcp` (Streamable HTTP). Tools: `get_overview`,
+`list_apps`, `get_app`, `list_pods`, `get_logs`, and `restart` (only when
+restart is enabled).
 
 MCP only accepts requests addressed to localhost. Behind a proxy or container
 network, set `HOMELAB_LAUNCHER_MCP_ALLOWED_HOSTS` to your public hostname.
@@ -88,8 +112,10 @@ network, set `HOMELAB_LAUNCHER_MCP_ALLOWED_HOSTS` to your public hostname.
 ### Security
 
 There is no authentication: anyone who can reach the service or the MCP
-endpoint can browse the directory, so run it on a trusted network or behind an
-authenticated proxy. Kubernetes access stays read-only.
+endpoint can see cluster state, read pod logs, and restart workloads, so run it
+on a trusted network or behind an authenticated proxy. The restart endpoint
+rejects cross-site browser requests. Kubernetes writes are limited to the
+restart annotation and events; never grant this service access to Secrets.
 
 ## Configuration
 
@@ -99,6 +125,7 @@ authenticated proxy. Kubernetes access stays read-only.
 | `HOMELAB_LAUNCHER_MCP_ALLOWED_HOSTS` | unset (MCP allows localhost only)            |
 | `HOMELAB_LAUNCHER_API_TARGET`        | `http://127.0.0.1:8080` (frontend dev proxy) |
 | `HOMELAB_LAUNCHER_FRONTEND_PORT`     | `5173` (frontend dev server)                 |
+| `HOMELAB_CONSOLE_RESTART_ENABLED`    | `true`; only `false` turns restart off       |
 | `KUBECONFIG`                         | standard kubeconfig loading                  |
 
 Liveness is `/healthz`; readiness is `/readyz`. Both check the running HTTP
@@ -109,7 +136,9 @@ during cluster API outages.
 
 Requires Go 1.25, Node 26, pnpm 10, and just.
 
-The API needs a working Kubernetes context with permission to list HTTPRoutes.
+The API needs a working Kubernetes context. With your own admin kubeconfig,
+restarts from the local UI or MCP endpoint are real; set
+`HOMELAB_CONSOLE_RESTART_ENABLED=false` in `.env` to browse safely.
 If your credentials are outside the default kubeconfig, or another project
 uses the default ports, create a root `.env` file (ignored by Git) that `just`
 loads for both commands:
