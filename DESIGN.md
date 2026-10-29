@@ -1,6 +1,6 @@
 # Design System
 
-Homelab Launcher is a simple self-hosted application.
+Homelab Console is a simple self-hosted application.
 
 The interface should use a small consistent vocabulary rather than
 one-off styling for each new control.
@@ -49,5 +49,29 @@ full accessible names and hosts even when visible text truncates.
 
 Use literal metadata groups. Favorites comes first only when that group exists;
 the default Apps group has no visible heading. Keep Retry with error or stale
-notices rather than adding a permanent Refresh action. Discovery is not an app
-health check.
+notices rather than adding a permanent Refresh action. Route discovery is not an
+app health check.
+
+## Console Views
+
+The header holds the wordmark, a segmented view switcher (Links, Overview, Apps,
+Pods), and the theme control; on phones the switcher wraps to its own row.
+Views use hash routes: `#/`, `#/overview`, `#/apps`, `#/apps/<name>`, and
+`#/pods`. Links is the unchanged launcher grid.
+
+- Overview: node cards (CPU, memory, role, kernel), then problems, apps needing
+  attention, and restarts in the last 24 hours as bordered row lists.
+- Apps: one table with sync and health chips, ready workloads, last deploy, and
+  primary link, filterable to apps needing attention.
+- App detail: status chips and facts, then one section per workload with its
+  pods table and a Restart button. The workload a search matched is outlined.
+- Pods: one table across namespaces with a Problems filter.
+
+Status uses kit-ui `Chip` tones: success for Synced/Healthy, warning for
+OutOfSync, danger for Degraded or a problem, info for progressing. Wide tables
+scroll inside their bordered wrapper; the page itself never scrolls sideways.
+Restart always confirms in a `Modal` with an optional reason; an unrestartable
+workload shows a disabled button whose title explains why. Logs open in a panel
+below the tables with Reload, Previous crash (when the pod has one), and Close.
+This layout was built directly and reviewed in the running app rather than from
+mockups.
