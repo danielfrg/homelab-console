@@ -286,7 +286,10 @@ func selector(s *metav1.LabelSelector) labels.Selector {
 }
 
 func buildPod(p corev1.Pod, now time.Time) Pod {
-	pod := Pod{Namespace: p.Namespace, Name: p.Name, Phase: string(p.Status.Phase), Node: p.Spec.NodeName, Images: []string{}}
+	pod := Pod{Namespace: p.Namespace, Name: p.Name, Phase: string(p.Status.Phase), Node: p.Spec.NodeName, Images: []string{}, Containers: []string{}}
+	for _, c := range p.Spec.Containers {
+		pod.Containers = append(pod.Containers, c.Name)
+	}
 	if p.Status.StartTime != nil {
 		t := p.Status.StartTime.UTC()
 		pod.StartedAt = &t
