@@ -26,6 +26,12 @@ func session(t *testing.T, h http.Handler, n int) *sdk.ClientSession {
 		t.Fatalf("tools %v %v", v, e)
 	}
 	for _, tool := range v.Tools {
+		if tool.Name == "restart" {
+			if tool.Annotations == nil || tool.Annotations.ReadOnlyHint || tool.Annotations.IdempotentHint || tool.Annotations.DestructiveHint == nil || *tool.Annotations.DestructiveHint {
+				t.Fatal("restart annotations")
+			}
+			continue
+		}
 		if tool.Annotations == nil || !tool.Annotations.ReadOnlyHint {
 			t.Fatal("not read-only")
 		}

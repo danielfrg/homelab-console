@@ -22,10 +22,10 @@ func main() {
 	if e != nil {
 		panic(e)
 	}
-	if len(v.Tools) != 2 {
+	if len(v.Tools) != 6 {
 		panic("Unexpected tool count")
 	}
-	out, e := s.CallTool(ctx, &sdk.CallToolParams{Name: "search_apps", Arguments: map[string]any{}})
+	out, e := s.CallTool(ctx, &sdk.CallToolParams{Name: "get_overview", Arguments: map[string]any{}})
 	if e != nil {
 		panic(e)
 	}
@@ -34,8 +34,8 @@ func main() {
 		panic(fmt.Sprintf("Unexpected tool result: %v", out))
 	}
 	content, _ := json.Marshal(out.Content)
-	if wantError && !strings.Contains(string(content), "App discovery unavailable") {
-		panic("Unexpected discovery failure")
+	if wantError && !strings.Contains(string(content), "Cluster data unavailable") {
+		panic("Unexpected cluster failure")
 	}
 	fmt.Printf("MCP initialize/list/call passed: %d tools\n", len(v.Tools))
 }
