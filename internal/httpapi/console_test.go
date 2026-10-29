@@ -54,7 +54,7 @@ func stubSnapshot() cluster.Snapshot {
 func get(t *testing.T, h http.Handler, path string) (int, map[string]any) {
 	t.Helper()
 	w := httptest.NewRecorder()
-	h.ServeHTTP(w, httptest.NewRequest("GET", path, nil))
+	h.ServeHTTP(w, httptest.NewRequest("GET", "http://localhost"+path, nil))
 	var body map[string]any
 	_ = json.Unmarshal(w.Body.Bytes(), &body)
 	return w.Code, body
@@ -96,7 +96,7 @@ func postRestart(h http.Handler, body string, headers map[string]string) *httpte
 
 func TestRestartRejectsCrossOrigin(t *testing.T) {
 	console := &consoleStub{snapshot: stubSnapshot()}
-	h := NewHandler(nil, nil, console)
+	h := NewHandler(nil, nil, console, "apps.corp.danielfrg.net")
 	body := `{"workload":"frigate","reason":"frozen"}`
 	json := map[string]string{"Content-Type": "application/json"}
 	cases := []struct {
@@ -123,5 +123,27 @@ func TestRestartRejectsCrossOrigin(t *testing.T) {
 	console.err = errors.New("secret patch failure")
 	if w := postRestart(h, body, json); w.Code != 503 || strings.Contains(w.Body.String(), "secret") {
 		t.Fatal(w.Code, w.Body.String())
+	}
+}
+
+func TestSensitiveEndpointsRequireAllowedHost(t *testing.T) {
+	h := NewHandler(nil, nil, &consoleStub{snapshot: stubSnapshot()}, "apps.corp.danielfrg.net")
+	for _, tc := range []struct {
+		method, url string
+		status      int
+	}{
+		{"GET", "http://rebind.evil.example/api/logs?workload=frigate", 403},
+		{"POST", "http://rebind.evil.example/api/restart", 403},
+		{"GET", "http://localhost:5179/api/logs?workload=frigate", 200},
+		{"GET", "http://apps.corp.danielfrg.net/api/logs?workload=frigate", 200},
+		{"GET", "http://rebind.evil.example/api/overview", 200},
+	} {
+		r := httptest.NewRequest(tc.method, tc.url, strings.NewReader(`{"workload":"frigate"}`))
+		r.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, r)
+		if w.Code != tc.status {
+			t.Fatalf("%s %s: %d", tc.method, tc.url, w.Code)
+		}
 	}
 }

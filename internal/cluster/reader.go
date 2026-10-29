@@ -36,10 +36,17 @@ type KubeReader struct {
 	dynamic dynamic.Interface
 }
 
-func NewKubeReader(config *rest.Config) (*KubeReader, error) {
+// BoundedConfig copies config with the request timeout and user agent every
+// cluster call uses, including restart patches and log reads.
+func BoundedConfig(config *rest.Config) *rest.Config {
 	bounded := rest.CopyConfig(config)
 	bounded.Timeout = requestTimeout
 	bounded.UserAgent = "homelab-console"
+	return bounded
+}
+
+func NewKubeReader(config *rest.Config) (*KubeReader, error) {
+	bounded := BoundedConfig(config)
 	typed, err := kubernetes.NewForConfig(bounded)
 	if err != nil {
 		return nil, err

@@ -9,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 var testNow = time.Date(2026, 10, 28, 12, 0, 0, 0, time.UTC)
@@ -153,3 +154,5 @@ func fixture() Raw {
 		Links: []apps.App{{ID: "default/home-assistant-http", Name: "Home Assistant", URL: "https://ha.corp.danielfrg.net", Aliases: []string{"home.corp.danielfrg.net"}}},
 	}
 }
+
+func schemaGR() schema.GroupResource { return schema.GroupResource{Group: "apps", Resource: "deployments"} }

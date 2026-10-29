@@ -86,7 +86,7 @@ func NewHandler(assets fs.FS, catalog AppCatalog, console mcp.Console, mcpHosts 
 		static.ServeHTTP(w, r)
 	}))
 
-	writes := sameOriginWrites(mux)
+	writes := allowedHosts(sameOriginWrites(mux), mcpHosts)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/mcp" {
 			mcpHandler.ServeHTTP(w, r)

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 const (
@@ -57,12 +58,16 @@ func (c *Console) Logs(ctx context.Context, req LogsRequest) (LogsResult, error)
 	if container != "" && len(target.Containers) > 0 && !slices.Contains(target.Containers, container) {
 		return LogsResult{}, userErrorf("pod " + target.Name + " has containers: " + strings.Join(target.Containers, ", "))
 	}
-	if req.Previous && target.LastTermination == nil {
-		return LogsResult{}, userErrorf("no previous container logs for " + target.Name + "; it has not restarted")
+	noPrevious := userErrorf("no previous container logs for " + target.Name + "/" + container + "; it has not restarted")
+	if req.Previous && !slices.Contains(target.terminated, container) {
+		return LogsResult{}, noPrevious
 	}
 	tail := int64(lines)
 	stream, err := c.logStream(ctx, target.Namespace, target.Name, &corev1.PodLogOptions{Container: container, Previous: req.Previous, TailLines: &tail})
 	if err != nil {
+		if req.Previous && apierrors.IsBadRequest(err) {
+			return LogsResult{}, noPrevious
+		}
 		return LogsResult{}, err
 	}
 	defer stream.Close()

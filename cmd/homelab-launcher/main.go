@@ -42,7 +42,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	typed, err := kubernetes.NewForConfig(config)
+	typed, err := kubernetes.NewForConfig(cluster.BoundedConfig(config))
 	if err != nil {
 		log.Fatal(err)
 	}

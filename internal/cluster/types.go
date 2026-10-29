@@ -107,6 +107,8 @@ type Pod struct {
 	StartedAt       *time.Time   `json:"started_at"`
 	Images          []string     `json:"images"`
 	Containers      []string     `json:"containers"`
+
+	terminated []string // containers with a previous (terminated) instance
 }
 
 type Termination struct {
