@@ -16,6 +16,7 @@ export interface AppSummary {
   ready: string;
   link: string;
   deployed_at: string | null;
+  links: Link[];
 }
 
 export interface Problem {
@@ -89,6 +90,9 @@ export interface Link {
   name: string;
   url: string;
   aliases: string[];
+  description: string;
+  group: string;
+  icon: string;
 }
 
 export interface ClusterEvent {
@@ -206,8 +210,15 @@ export function fetchOverview(signal?: AbortSignal): Promise<Overview> {
   return getJSON("/api/overview", parseOverview, signal);
 }
 
+export function parseAppList(value: unknown): AppList {
+  if (!hasArrays(value, ["apps"]) || !(value.apps as unknown[]).every((app) => hasArrays(app, ["links"]) && typeof app.name === "string")) {
+    throw new Error("Invalid apps response");
+  }
+  return value as unknown as AppList;
+}
+
 export function fetchApps(status: "all" | "problems" = "all", signal?: AbortSignal): Promise<AppList> {
-  return getJSON(`/api/apps?status=${status}`, parseList<AppList>("apps"), signal);
+  return getJSON(`/api/apps?status=${status}`, parseAppList, signal);
 }
 
 export function fetchApp(name: string, signal?: AbortSignal): Promise<AppDetail> {
@@ -266,4 +277,50 @@ export function relativeTime(value: string | null | undefined, now = Date.now())
   if (seconds < 3600) return `${Math.round(seconds / 60)}m ago`;
   if (seconds < 86400) return `${Math.round(seconds / 3600)}h ago`;
   return `${Math.round(seconds / 86400)}d ago`;
+}
+
+const unlinkedGroup = "Without links";
+
+// AppTile is one card in the grid: one per HTTPRoute link, or one per app
+// that has no link, always carrying its owning app's status.
+export interface AppTile {
+  app: AppSummary;
+  link: Link | null;
+  title: string;
+  host: string;
+}
+
+function hostname(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return "";
+  }
+}
+
+export function appTiles(apps: AppSummary[]): AppTile[] {
+  return apps.flatMap((app): AppTile[] => app.links.length === 0
+    ? [{ app, link: null, title: app.name, host: "" }]
+    : app.links.map((link) => ({ app, link, title: link.name || app.name, host: hostname(link.url) })));
+}
+
+// groupTiles mirrors the launcher: Favorites, then Apps, then other literal
+// route groups; apps without an HTTPRoute come last.
+export function groupTiles(tiles: AppTile[]): { name: string; tiles: AppTile[] }[] {
+  const groups = new Map<string, AppTile[]>();
+  for (const tile of tiles) {
+    const name = tile.link ? (tile.link.group.trim() || "Apps") : unlinkedGroup;
+    groups.set(name, [...(groups.get(name) ?? []), tile]);
+  }
+  const rank = (name: string): number =>
+    name === "Favorites" ? 0 : name === "Apps" ? 1 : name === unlinkedGroup ? 3 : 2;
+  return [...groups].sort(([left], [right]) => rank(left) - rank(right) || left.localeCompare(right))
+    .map(([name, tiles]) => ({ name, tiles }));
+}
+
+export function filterTiles(tiles: AppTile[], query: string): AppTile[] {
+  const search = query.trim().toLocaleLowerCase();
+  if (!search) return tiles;
+  return tiles.filter((t) => [t.app.name, t.title, t.host, t.link?.description ?? "", ...(t.link?.aliases ?? [])]
+    .join(" ").toLocaleLowerCase().includes(search));
 }

@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { SearchInput, SegmentedControl } from "@kenn-io/kit-ui";
-  import { fetchApps, relativeTime, type AppList } from "$lib/console.js";
+  import { appTiles, fetchApps, filterTiles, groupTiles, type AppList } from "$lib/console.js";
+  import AppTile from "./AppTile.svelte";
   import LoadState from "./LoadState.svelte";
-  import StatusChip from "./StatusChip.svelte";
 
   let data = $state<AppList | null>(null);
   let loading = $state(false);
@@ -24,36 +24,31 @@
   }
 
   onMount(() => { void load(); });
-  const visible = $derived((data?.apps ?? []).filter((a) => a.name.toLowerCase().includes(query.trim().toLowerCase())));
+  const groups = $derived(groupTiles(filterTiles(appTiles(data?.apps ?? []), query)));
 </script>
 
 <div class="view-toolbar">
   <SegmentedControl ariaLabel="Filter apps" value={status}
     options={[{ value: "all", label: "All" }, { value: "problems", label: "Needs attention" }]}
     onchange={(value) => { status = value as "all" | "problems"; void load(); }} />
-  <div class="directory-search"><SearchInput block ariaLabel="Filter apps by name" placeholder="Filter apps" value={query} oninput={(v) => query = v} /></div>
+  <div class="directory-search"><SearchInput block ariaLabel="Search apps" placeholder="Search apps or hosts" value={query} oninput={(v) => query = v} /></div>
 </div>
 
 <LoadState {loading} {error} stale={data?.stale} hasData={data !== null} retry={() => void load()}>
-  {#if visible.length === 0}
-    <div class="directory-empty"><h2>{status === "problems" ? "Every app is Synced and Healthy" : "No apps match"}</h2></div>
+  {#if groups.length === 0}
+    <div class="directory-empty">
+      <h2>{status === "problems" && !query.trim() ? "Every app is Synced and Healthy" : "No apps match your search"}</h2>
+    </div>
   {:else}
-    <div class="table-wrap">
-      <table class="data-table">
-        <thead><tr><th>App</th><th>Sync</th><th>Health</th><th>Workloads ready</th><th>Last deploy</th><th>Link</th></tr></thead>
-        <tbody>
-          {#each visible as app (app.name)}
-            <tr>
-              <td><a class="mono" href={`#/apps/${encodeURIComponent(app.name)}`}>{app.name}</a></td>
-              <td><StatusChip status={app.sync} /></td>
-              <td><StatusChip status={app.health} /></td>
-              <td class="mono">{app.ready}</td>
-              <td class="muted">{relativeTime(app.deployed_at)}</td>
-              <td>{#if app.link}<a href={app.link} target="_blank" rel="noreferrer" class="muted">{new URL(app.link).hostname}</a>{/if}</td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
+    <div class="directory-groups">
+      {#each groups as group (group.name)}
+        <section aria-label={group.name}>
+          {#if group.name !== "Apps"}<h2 class="directory-group-title">{group.name}</h2>{/if}
+          <div class="app-grid">
+            {#each group.tiles as tile (`${tile.app.name}/${tile.link?.url ?? ""}`)}<AppTile {tile} />{/each}
+          </div>
+        </section>
+      {/each}
     </div>
   {/if}
 </LoadState>

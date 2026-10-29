@@ -3,17 +3,15 @@
   import { SegmentedControl, ThemeToggle } from "@kenn-io/kit-ui";
   import AppDetail from "$lib/components/AppDetail.svelte";
   import AppsList from "$lib/components/AppsList.svelte";
-  import LinksView from "$lib/components/LinksView.svelte";
-  import Overview from "$lib/components/Overview.svelte";
   import PodsTable from "$lib/components/PodsTable.svelte";
 
-  type Route = { view: "links" | "overview" | "apps" | "pods" } | { view: "app"; name: string };
+  type Route = { view: "apps" | "pods" } | { view: "app"; name: string };
 
   function parseRoute(hash: string): Route {
     const path = hash.replace(/^#\/?/, "");
     if (path.startsWith("apps/") && path.length > 5) return { view: "app", name: decodeURIComponent(path.slice(5)) };
-    if (path === "overview" || path === "apps" || path === "pods") return { view: path };
-    return { view: "links" };
+    if (path === "pods") return { view: "pods" };
+    return { view: "apps" };
   }
 
   let route = $state<Route>(parseRoute(location.hash));
@@ -31,17 +29,13 @@
     <h1>Homelab Console</h1>
     <div class="directory-controls">
       <SegmentedControl ariaLabel="Views" value={tab}
-        options={[{ value: "links", label: "Links" }, { value: "overview", label: "Overview" }, { value: "apps", label: "Apps" }, { value: "pods", label: "Pods" }]}
-        onchange={(value) => location.hash = value === "links" ? "#/" : `#/${value}`} />
+        options={[{ value: "apps", label: "Apps" }, { value: "pods", label: "Pods" }]}
+        onchange={(value) => location.hash = value === "apps" ? "#/" : `#/${value}`} />
       <ThemeToggle />
     </div>
   </header>
 
-  {#if route.view === "links"}
-    <LinksView />
-  {:else if route.view === "overview"}
-    <Overview />
-  {:else if route.view === "apps"}
+  {#if route.view === "apps"}
     <AppsList />
   {:else if route.view === "app"}
     <AppDetail name={route.name} />

@@ -59,3 +59,45 @@ test("maps Argo statuses to tones", () => {
   assert.equal(statusTone("OutOfSync"), "warning");
   assert.equal(statusTone("Progressing"), "info");
 });
+
+function summary(overrides: Partial<import("./console.ts").AppSummary> = {}): import("./console.ts").AppSummary {
+  return { name: "x", sync: "Synced", health: "Healthy", ready: "1/1", link: "", deployed_at: null, links: [], ...overrides };
+}
+
+function link(url: string, overrides: Partial<import("./console.ts").Link> = {}): import("./console.ts").Link {
+  return { name: "", url, aliases: [], description: "", group: "", icon: "", ...overrides };
+}
+
+test("makes one tile per link, grouped like the launcher, unlinked apps last", async () => {
+  const { appTiles, groupTiles } = await import("./console.ts");
+  const tiles = appTiles([
+    summary({ name: "metallb" }),
+    summary({ name: "home-assistant", links: [link("https://frigate.example", { name: "Frigate" }), link("https://ha.example", { name: "Home Assistant" })] }),
+    summary({ name: "plex", links: [link("https://plex.example", { group: "Media" })] }),
+    summary({ name: "golinks", links: [link("https://go.example", { group: "Favorites" })] }),
+  ]);
+  assert.deepEqual(tiles.map((t) => [t.app.name, t.title]), [
+    ["metallb", "metallb"], ["home-assistant", "Frigate"], ["home-assistant", "Home Assistant"], ["plex", "plex"], ["golinks", "golinks"],
+  ]);
+  assert.deepEqual(groupTiles(tiles).map((g) => [g.name, g.tiles.map((t) => t.title)]), [
+    ["Favorites", ["golinks"]], ["Apps", ["Frigate", "Home Assistant"]], ["Media", ["plex"]], ["Without links", ["metallb"]],
+  ]);
+});
+
+test("filters tiles by app name, title, hostname, alias, and description", async () => {
+  const { appTiles, filterTiles } = await import("./console.ts");
+  const tiles = appTiles([
+    summary({ name: "home-assistant", links: [link("https://ha.example", { name: "Home Assistant", aliases: ["home.example"], description: "Smart home" })] }),
+    summary({ name: "budget" }),
+  ]);
+  for (const query of ["HOME-ass", "assistant", "ha.example", "home.example", "smart"]) {
+    assert.deepEqual(filterTiles(tiles, query).map((t) => t.app.name), ["home-assistant"], query);
+  }
+  assert.equal(filterTiles(tiles, "  ").length, 2);
+});
+
+test("rejects an app list whose apps lack links", async () => {
+  const { parseAppList } = await import("./console.ts");
+  assert.throws(() => parseAppList({ apps: [{ name: "budget" }], updated_at: "", stale: false }), /Invalid apps/);
+  assert.equal(parseAppList({ apps: [{ name: "budget", links: [] }], updated_at: "", stale: false }).apps.length, 1);
+});

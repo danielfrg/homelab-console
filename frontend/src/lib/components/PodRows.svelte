@@ -8,7 +8,7 @@
 <div class="table-wrap">
   <table class="data-table">
     <thead>
-      <tr><th>Pod</th>{#if showOwner}<th>App</th>{/if}<th>Status</th><th>Restarts</th><th>Last termination</th><th>Node</th><th>Age</th><th><span class="sr-only">Logs</span></th></tr>
+      <tr><th>Pod</th>{#if showOwner}<th>App</th>{/if}<th>Status</th><th>Restarts</th><th>Age</th><th><span class="sr-only">Logs</span></th></tr>
     </thead>
     <tbody>
       {#each pods as pod (`${pod.namespace}/${pod.name}`)}
@@ -19,9 +19,7 @@
             {#if pod.problem}<StatusChip status="Degraded" /> <span class="reason">{pod.problem}</span>
             {:else}<StatusChip status={pod.ready ? "Healthy" : pod.phase} />{/if}
           </td>
-          <td class="mono">{pod.restarts}</td>
-          <td class="muted">{pod.last_termination ? `${pod.last_termination.reason} (${pod.last_termination.exit_code}) ${relativeTime(pod.last_termination.finished_at)}` : "—"}</td>
-          <td class="mono muted">{pod.node || "—"}</td>
+          <td class="mono" title={pod.last_termination ? `Last: ${pod.last_termination.reason} (exit ${pod.last_termination.exit_code}) ${relativeTime(pod.last_termination.finished_at)}` : undefined}>{pod.restarts}</td>
           <td class="muted">{relativeTime(pod.started_at)}</td>
           <td><button class="link-button" type="button" onclick={() => onlogs(pod)}>Logs</button></td>
         </tr>
