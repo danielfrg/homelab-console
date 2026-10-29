@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/danielfrg/homelab-launcher/internal/apps"
-	"mime"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -14,35 +13,16 @@ import (
 	"time"
 )
 
-func TestHello(t *testing.T) {
-	response := httptest.NewRecorder()
-	NewHandler(nil, nil).ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/hello", nil))
-	if response.Code != http.StatusOK {
-		t.Fatalf("status = %d, want 200", response.Code)
-	}
-	mediaType, _, err := mime.ParseMediaType(response.Header().Get("Content-Type"))
-	if err != nil || mediaType != "application/json" {
-		t.Fatalf("content type = %q, error = %v", mediaType, err)
-	}
-	var body map[string]any
-	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
-		t.Fatal(err)
-	}
-	if len(body) != 1 || body["message"] != "Hello from Homelab" {
-		t.Fatalf("body = %#v, want only the Homelab greeting", body)
-	}
-}
-
 func TestRouting(t *testing.T) {
-	handler := NewHandler(nil, nil)
+	handler := NewHandler(nil, nil, nil)
 	for _, tc := range []struct {
 		method string
 		path   string
 		status int
 	}{
-		{http.MethodPost, "/api/hello", http.StatusMethodNotAllowed},
+		{http.MethodPost, "/api/links", http.StatusMethodNotAllowed},
 		{http.MethodGet, "/api/missing", http.StatusNotFound},
-		{http.MethodHead, "/api/hello", http.StatusOK},
+		{http.MethodHead, "/api/links", http.StatusServiceUnavailable},
 	} {
 		t.Run(tc.method+" "+tc.path, func(t *testing.T) {
 			response := httptest.NewRecorder()
@@ -56,7 +36,7 @@ func TestRouting(t *testing.T) {
 
 func TestOpenAPI(t *testing.T) {
 	response := httptest.NewRecorder()
-	NewHandler(nil, nil).ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/openapi.json", nil))
+	NewHandler(nil, nil, nil).ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/openapi.json", nil))
 	if response.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200", response.Code)
 	}
@@ -69,12 +49,12 @@ func TestOpenAPI(t *testing.T) {
 		t.Fatalf("OpenAPI version = %q, want 3.1", version)
 	}
 	info := object(t, spec["info"])
-	if info["title"] != "Homelab API" || info["version"] != "0.1.0" {
+	if info["title"] != "Homelab Console API" || info["version"] != "0.2.0" {
 		t.Fatalf("info = %#v", info)
 	}
 	paths := object(t, spec["paths"])
-	operation := object(t, object(t, paths["/api/hello"])["get"])
-	if operation["operationId"] != "get-hello" {
+	operation := object(t, object(t, paths["/api/overview"])["get"])
+	if operation["operationId"] != "get-overview" {
 		t.Fatalf("operation ID = %v", operation["operationId"])
 	}
 	responses := object(t, operation["responses"])
@@ -92,28 +72,28 @@ func TestOpenAPI(t *testing.T) {
 		t.Fatalf("response schema type = %v", schema["type"])
 	}
 	properties := object(t, schema["properties"])
-	if object(t, properties["message"])["type"] != "string" {
-		t.Fatalf("message schema = %#v", properties["message"])
+	if object(t, properties["problems"])["type"] != "array" {
+		t.Fatalf("problems schema = %#v", properties["problems"])
 	}
 	required, ok := schema["required"].([]any)
 	if !ok {
 		t.Fatal("response schema has no required fields")
 	}
 	for _, field := range required {
-		if field == "message" {
+		if field == "problems" {
 			return
 		}
 	}
-	t.Fatal("message is not required in the response schema")
+	t.Fatal("problems is not required in the response schema")
 }
 
 func TestDocsAndYAML(t *testing.T) {
-	handler := NewHandler(nil, nil)
+	handler := NewHandler(nil, nil, nil)
 	for _, tc := range []struct {
 		path     string
 		contains []string
 	}{
-		{"/api/openapi.yaml", []string{"/api/hello", "get-hello"}},
+		{"/api/openapi.yaml", []string{"/api/overview", "get-overview"}},
 		{"/api/docs", []string{"/api/openapi"}},
 	} {
 		t.Run(tc.path, func(t *testing.T) {
@@ -147,7 +127,7 @@ func TestProductionRouting(t *testing.T) {
 	handler := NewHandler(fstest.MapFS{
 		"index.html":  {Data: []byte("<!doctype html><title>Homelab</title>")},
 		"api/missing": {Data: []byte("must not shadow API routes")},
-	}, nil)
+	}, nil, nil)
 	for _, tc := range []struct {
 		method, path string
 		status       int
@@ -155,13 +135,13 @@ func TestProductionRouting(t *testing.T) {
 	}{
 		{"GET", "/", 200, "<title>Homelab</title>"},
 		{"GET", "/healthz", 200, "ok"},
-		{"GET", "/api/hello", 200, "Hello from Homelab"},
-		{"GET", "/api/openapi.json", 200, "get-hello"},
-		{"GET", "/api/openapi.yaml", 200, "get-hello"},
+		{"GET", "/api/config", 200, "restart_enabled"},
+		{"GET", "/api/openapi.json", 200, "get-overview"},
+		{"GET", "/api/openapi.yaml", 200, "get-overview"},
 		{"GET", "/api/docs", 200, "/api/openapi"},
 		{"GET", "/api/missing", 404, ""},
 		{"GET", "/api%2Fmissing", 404, ""},
-		{"POST", "/api/hello", 405, ""},
+		{"POST", "/api/overview", 405, ""},
 	} {
 		t.Run(tc.method+" "+tc.path, func(t *testing.T) {
 			response := httptest.NewRecorder()
@@ -178,7 +158,7 @@ func TestProductionRouting(t *testing.T) {
 
 func TestAppsEndpointExists(t *testing.T) {
 	response := httptest.NewRecorder()
-	NewHandler(nil, nil).ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/apps", nil))
+	NewHandler(nil, nil, nil).ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/links", nil))
 	if response.Code != http.StatusServiceUnavailable {
 		t.Fatalf("apps without a catalog status = %d, want 503", response.Code)
 	}
@@ -199,9 +179,9 @@ func TestAppsResponseAndRefreshQuery(t *testing.T) {
 	catalog := &catalogStub{snapshot: apps.Snapshot{Apps: []apps.App{{
 		ID: "default/calendar-http", Name: "Calendar", URL: "https://calendar.example.test", Aliases: []string{}, Group: "Apps",
 	}}, UpdatedAt: time.Date(2026, 10, 8, 12, 0, 0, 0, time.UTC), Stale: true}}
-	handler := NewHandler(nil, catalog)
+	handler := NewHandler(nil, catalog, nil)
 	response := httptest.NewRecorder()
-	handler.ServeHTTP(response, httptest.NewRequest("GET", "/api/apps?refresh=true", nil))
+	handler.ServeHTTP(response, httptest.NewRequest("GET", "/api/links?refresh=true", nil))
 	if response.Code != 200 || !catalog.refreshed {
 		t.Fatalf("status %d, refresh %v", response.Code, catalog.refreshed)
 	}
@@ -225,16 +205,16 @@ func TestAppsResponseAndRefreshQuery(t *testing.T) {
 		t.Fatalf("aliases = %#v", app["aliases"])
 	}
 	invalid := httptest.NewRecorder()
-	handler.ServeHTTP(invalid, httptest.NewRequest("GET", "/api/apps?refresh=garbage", nil))
+	handler.ServeHTTP(invalid, httptest.NewRequest("GET", "/api/links?refresh=garbage", nil))
 	if invalid.Code != 422 {
 		t.Fatalf("invalid refresh status %d", invalid.Code)
 	}
 }
 
 func TestAppsFailureIsSanitizedAndHealthIndependent(t *testing.T) {
-	handler := NewHandler(nil, &catalogStub{err: errors.New("token=secret upstream detail")})
+	handler := NewHandler(nil, &catalogStub{err: errors.New("token=secret upstream detail")}, nil)
 	response := httptest.NewRecorder()
-	handler.ServeHTTP(response, httptest.NewRequest("GET", "/api/apps", nil))
+	handler.ServeHTTP(response, httptest.NewRequest("GET", "/api/links", nil))
 	if response.Code != 503 || strings.Contains(response.Body.String(), "secret") || !strings.Contains(response.Body.String(), "temporarily unavailable") {
 		t.Fatalf("failure response = %d %s", response.Code, response.Body.String())
 	}
@@ -247,13 +227,13 @@ func TestAppsFailureIsSanitizedAndHealthIndependent(t *testing.T) {
 
 func TestAppsOpenAPI(t *testing.T) {
 	response := httptest.NewRecorder()
-	NewHandler(nil, nil).ServeHTTP(response, httptest.NewRequest("GET", "/api/openapi.json", nil))
+	NewHandler(nil, nil, nil).ServeHTTP(response, httptest.NewRequest("GET", "/api/openapi.json", nil))
 	var spec map[string]any
 	if err := json.Unmarshal(response.Body.Bytes(), &spec); err != nil {
 		t.Fatal(err)
 	}
-	operation := object(t, object(t, object(t, spec["paths"])["/api/apps"])["get"])
-	if operation["operationId"] != "list-apps" {
+	operation := object(t, object(t, object(t, spec["paths"])["/api/links"])["get"])
+	if operation["operationId"] != "list-links" {
 		t.Fatalf("operation = %#v", operation)
 	}
 	parameters, ok := operation["parameters"].([]any)
@@ -281,7 +261,7 @@ func TestAppsOpenAPI(t *testing.T) {
 
 // Probes stay usable during upstream outages and never trigger collection.
 func TestOperationalProbes(t *testing.T) {
-	h := NewHandler(nil, nil)
+	h := NewHandler(nil, nil, nil)
 	for _, path := range []string{"/healthz", "/readyz"} {
 		for _, method := range []string{http.MethodGet, http.MethodHead} {
 			w := httptest.NewRecorder()

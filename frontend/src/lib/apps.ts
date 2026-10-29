@@ -68,7 +68,7 @@ export function parseSnapshot(value: unknown): AppSnapshot {
 }
 
 export async function fetchApps(refresh = false, signal?: AbortSignal): Promise<AppSnapshot> {
-  const response = await fetch(refresh ? "/api/apps?refresh=true" : "/api/apps", { signal });
+  const response = await fetch(refresh ? "/api/links?refresh=true" : "/api/links", { signal });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   return parseSnapshot(await response.json());
 }

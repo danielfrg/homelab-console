@@ -5,6 +5,8 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"path"
+	"reflect"
 	"strings"
 	"time"
 
@@ -15,14 +17,6 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 )
-
-type HelloBody struct {
-	Message string `json:"message" doc:"Greeting from the Homelab API" example:"Hello from Homelab"`
-}
-
-type HelloOutput struct {
-	Body HelloBody
-}
 
 type AppCatalog interface {
 	Snapshot(context.Context, bool) (apps.Snapshot, error)
@@ -36,32 +30,31 @@ type AppsOutput struct {
 	Body apps.Snapshot
 }
 
-func NewHandler(assets fs.FS, catalog AppCatalog, mcpHosts ...string) http.Handler {
+func NewHandler(assets fs.FS, catalog AppCatalog, console mcp.Console, mcpHosts ...string) http.Handler {
 	mux := http.NewServeMux()
-	mcpHandler := mcp.NewHandler(catalog, mcpHosts)
-	config := huma.DefaultConfig("Homelab API", "0.1.0")
+	mcpHandler := mcp.NewHandler(console, mcpHosts)
+	config := huma.DefaultConfig("Homelab Console API", "0.2.0")
 	config.OpenAPIPath = "/api/openapi"
 	config.DocsPath = "/api/docs"
 	config.SchemasPath = ""
+	// apps.App and cluster.App would otherwise share the schema name "App".
+	config.Components.Schemas = huma.NewMapRegistry("#/components/schemas/", func(t reflect.Type, hint string) string {
+		name := huma.DefaultSchemaNamer(t, hint)
+		if pkg := path.Base(t.PkgPath()); pkg == "cluster" || pkg == "mcp" {
+			return strings.ToUpper(pkg[:1]) + pkg[1:] + name
+		}
+		return name
+	})
 
 	// Keep response bodies free of Huma's optional $schema metadata.
 	config.CreateHooks = nil
 	api := humago.New(mux, config)
 
 	huma.Register(api, huma.Operation{
-		OperationID: "get-hello",
+		OperationID: "list-links",
 		Method:      http.MethodGet,
-		Path:        "/api/hello",
-		Summary:     "Get the Homelab greeting",
-	}, func(_ context.Context, _ *struct{}) (*HelloOutput, error) {
-		return &HelloOutput{Body: HelloBody{Message: "Hello from Homelab"}}, nil
-	})
-
-	huma.Register(api, huma.Operation{
-		OperationID: "list-apps",
-		Method:      http.MethodGet,
-		Path:        "/api/apps",
-		Summary:     "List homelab apps discovered from HTTPRoutes",
+		Path:        "/api/links",
+		Summary:     "List app links discovered from HTTPRoutes",
 		Errors:      []int{http.StatusServiceUnavailable},
 	}, func(ctx context.Context, input *AppsInput) (*AppsOutput, error) {
 		if catalog == nil {
@@ -73,6 +66,8 @@ func NewHandler(assets fs.FS, catalog AppCatalog, mcpHosts ...string) http.Handl
 		}
 		return &AppsOutput{Body: snapshot}, nil
 	})
+
+	registerConsole(api, console)
 
 	probe := func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
@@ -91,13 +86,14 @@ func NewHandler(assets fs.FS, catalog AppCatalog, mcpHosts ...string) http.Handl
 		static.ServeHTTP(w, r)
 	}))
 
+	writes := sameOriginWrites(mux)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/mcp" {
 			mcpHandler.ServeHTTP(w, r)
 			return
 		}
 		start := time.Now()
-		mux.ServeHTTP(w, r)
+		writes.ServeHTTP(w, r)
 		log.Printf("%s %s %s", r.Method, r.URL.Path, time.Since(start).Round(time.Microsecond))
 	})
 }

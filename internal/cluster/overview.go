@@ -39,12 +39,12 @@ type Overview struct {
 	Stale            bool            `json:"stale"`
 	ArgoAvailable    bool            `json:"argo_available"`
 	MetricsAvailable bool            `json:"metrics_available"`
-	Nodes            []Node          `json:"nodes"`
+	Nodes            []Node          `json:"nodes" nullable:"false"`
 	AppTotals        map[string]int  `json:"app_totals"`
-	NeedsAttention   []AppSummary    `json:"needs_attention"`
-	Problems         []Problem       `json:"problems"`
+	NeedsAttention   []AppSummary    `json:"needs_attention" nullable:"false"`
+	Problems         []Problem       `json:"problems" nullable:"false"`
 	ProblemTotal     int             `json:"problem_total"`
-	RecentRestarts   []RecentRestart `json:"recent_restarts"`
+	RecentRestarts   []RecentRestart `json:"recent_restarts" nullable:"false"`
 }
 
 // Summaries returns one compact line per app, in name order.

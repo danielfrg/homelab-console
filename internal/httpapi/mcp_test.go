@@ -6,7 +6,7 @@ import (
 )
 
 func TestMCPEndpoint(t *testing.T) {
-	h := NewHandler(nil, nil)
+	h := NewHandler(nil, nil, nil)
 	for _, method := range []string{"GET", "HEAD", "PUT"} {
 		w := httptest.NewRecorder()
 		h.ServeHTTP(w, httptest.NewRequest(method, "http://localhost/mcp", nil))

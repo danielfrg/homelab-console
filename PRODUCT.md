@@ -2,18 +2,22 @@
 
 ## Users
 
-Kubernetes users who want to find and open their routed applications from a
-desktop browser or phone.
+Daniel, running a K3s homelab with Argo CD, and the agents he talks to (OpenClaw
+over Telegram). He wants to find and open apps, see whether the cluster is
+healthy, read why something broke, and restart it, including when he is away
+from home.
 
 Assumes deployment on a trusted network; there is no auth.
 
 ## Product Purpose
 
-Make applications easy to find without remembering hostnames or maintaining a
-second inventory. Discover links and presentation metadata from HTTPRoutes.
+Make the homelab easy to check on and fix. Apps come from Argo CD, links from
+HTTPRoutes, and live state from Kubernetes, so there is no second inventory.
 
-Success means recognizing an app, finding it by name or hostname, and opening
-it quickly, including when a refresh fails.
+Success means: "is everything OK?" gets an accurate answer, "how's frigate?"
+finds Frigate inside home-assistant with its pods and warnings, "restart
+frigate" restarts exactly that workload, and links still open quickly when a
+refresh fails.
 
 ## Brand Personality
 
@@ -28,7 +32,9 @@ failed or stale discovery and empty results.
 ## Anti-references
 
 Avoid decorative dashboard metrics, guessed app categories, hard-coded app
-inventories, and health indicators inferred from route discovery.
+inventories, raw YAML dumps, and health inferred from route discovery. Status
+comes from Kubernetes and Argo CD, and the UI should not imply an app works
+just because its pods are Ready.
 
 ## Design Principles
 
@@ -42,7 +48,8 @@ inventories, and health indicators inferred from route discovery.
 
 ## Agent Access
 
-Agents browse the same route-derived directory through typed MCP tools,
-reading the normal catalog cache. Results preserve aliases, literal groups,
-update time, and stale status. Discovery does not imply destination health;
-tools never modify routes or probe destinations.
+Agents use six typed MCP tools over the same cached snapshot: overview, apps,
+one app, pods, logs, and restart. Answers are compact enough for a chat model.
+Restart is for explicit user requests only, is limited to Argo CD app
+workloads, and is recorded as a Kubernetes event. Tools never probe app
+destinations.
