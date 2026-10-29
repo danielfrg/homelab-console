@@ -52,6 +52,9 @@ func (c *Console) Restart(ctx context.Context, req RestartRequest) (RestartResul
 	if err != nil {
 		return RestartResult{}, err
 	}
+	if snap.Stale {
+		return RestartResult{}, userErrorf("cluster data is stale because the Kubernetes API did not answer; not restarting anything")
+	}
 	targets, skipped, err := restartTargets(snap, workload, app)
 	if err != nil {
 		return RestartResult{}, err
@@ -75,7 +78,7 @@ func (c *Console) Restart(ctx context.Context, req RestartRequest) (RestartResul
 	for _, w := range targets {
 		if err := c.patch(ctx, w, patch); err != nil {
 			c.inv.Invalidate()
-			return out, fmt.Errorf("restart %s/%s: %w", w.Namespace, w.Name, err)
+			return out, userErrorf(partialMessage(out.Restarted, w))
 		}
 		key := w.Namespace + "/" + w.Name
 		c.restarts[key] = append(c.recent(w, now), now)
@@ -84,6 +87,20 @@ func (c *Console) Restart(ctx context.Context, req RestartRequest) (RestartResul
 	}
 	c.inv.Invalidate()
 	return out, nil
+}
+
+// partialMessage says exactly what happened so a retry does not re-roll
+// workloads that already restarted. Raw API errors stay out of it.
+func partialMessage(done []RestartedWorkload, failed Workload) string {
+	message := "could not restart " + failed.Namespace + "/" + failed.Name + ": the Kubernetes API refused the change"
+	if len(done) == 0 {
+		return message
+	}
+	names := []string{}
+	for _, d := range done {
+		names = append(names, d.Namespace+"/"+d.Name)
+	}
+	return "restarted " + strings.Join(names, ", ") + "; " + message + "; check get_app before retrying"
 }
 
 func restartTargets(snap Snapshot, workload, app string) ([]Workload, []string, error) {

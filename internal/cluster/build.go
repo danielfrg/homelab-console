@@ -58,13 +58,9 @@ func Build(raw Raw, now time.Time) Snapshot {
 
 	for _, p := range raw.Pods {
 		pod := buildPod(p, now)
-		for i := range s.Workloads {
-			w := &s.Workloads[i]
-			if w.Namespace == p.Namespace && w.selector != nil && w.selector.Matches(labels.Set(p.Labels)) {
-				pod.Workload, pod.App = w.Name, w.App
-				w.Pods = append(w.Pods, p.Name)
-				break
-			}
+		if w := ownerWorkload(s.Workloads, p); w != nil {
+			pod.Workload, pod.App = w.Name, w.App
+			w.Pods = append(w.Pods, p.Name)
 		}
 		s.Pods = append(s.Pods, pod)
 	}
@@ -91,6 +87,38 @@ func Build(raw Raw, now time.Time) Snapshot {
 	}
 	sort.SliceStable(s.Events, func(i, j int) bool { return s.Events[i].LastSeen.After(s.Events[j].LastSeen) })
 	return s
+}
+
+// ownerWorkload finds the workload that owns a pod through its owner reference:
+// a StatefulSet directly, or a Deployment through its "<name>-<pod-template-hash>"
+// ReplicaSet. Selectors are only a fallback for pods without such an owner,
+// because a broad selector can match a sibling workload's pods.
+func ownerWorkload(workloads []Workload, p corev1.Pod) *Workload {
+	for _, ref := range p.OwnerReferences {
+		for i := range workloads {
+			w := &workloads[i]
+			if w.Namespace != p.Namespace {
+				continue
+			}
+			switch {
+			case ref.Kind == "StatefulSet" && w.Kind == "StatefulSet" && ref.Name == w.Name:
+				return w
+			case ref.Kind == "ReplicaSet" && w.Kind == "Deployment" && p.Labels["pod-template-hash"] != "" &&
+				ref.Name == w.Name+"-"+p.Labels["pod-template-hash"]:
+				return w
+			}
+		}
+		if ref.Kind == "ReplicaSet" || ref.Kind == "StatefulSet" || ref.Kind == "DaemonSet" || ref.Kind == "Job" {
+			return nil
+		}
+	}
+	for i := range workloads {
+		w := &workloads[i]
+		if w.Namespace == p.Namespace && w.selector != nil && w.selector.Matches(labels.Set(p.Labels)) {
+			return w
+		}
+	}
+	return nil
 }
 
 func workloadKey(w Workload) string { return w.Namespace + "/" + w.Name + "/" + w.Kind }
@@ -302,6 +330,9 @@ func buildPod(p corev1.Pod, now time.Time) Pod {
 		}
 	}
 	for _, c := range p.Status.ContainerStatuses {
+		if c.LastTerminationState.Terminated != nil {
+			pod.terminated = append(pod.terminated, c.Name)
+		}
 		pod.Restarts += c.RestartCount
 		pod.Images = append(pod.Images, c.Image)
 		if c.State.Waiting != nil && pod.Waiting == "" {

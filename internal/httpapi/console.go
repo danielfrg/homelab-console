@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"mime"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -180,6 +181,28 @@ func consoleError(err error) error {
 	default:
 		return unavailable()
 	}
+}
+
+// allowedHosts guards the endpoints that reveal logs or change the cluster
+// against DNS rebinding, using the same host list as MCP.
+func allowedHosts(next http.Handler, hosts []string) http.Handler {
+	allowed := map[string]bool{"localhost": true, "127.0.0.1": true, "::1": true}
+	for _, host := range hosts {
+		allowed[strings.ToLower(strings.Trim(host, "[]"))] = true
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/restart" || r.URL.Path == "/api/logs" {
+			host := r.Host
+			if h, _, err := net.SplitHostPort(host); err == nil {
+				host = h
+			}
+			if !allowed[strings.ToLower(strings.Trim(host, "[]"))] {
+				http.Error(w, "Host is not allowed", http.StatusForbidden)
+				return
+			}
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 // sameOriginWrites rejects browser requests to write endpoints from other
