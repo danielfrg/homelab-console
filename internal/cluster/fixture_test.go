@@ -151,8 +151,10 @@ func fixture() Raw {
 			Type:           corev1.EventTypeWarning, Reason: "BackOff", Message: "Back-off restarting failed container", Count: 12,
 			LastTimestamp: metav1.NewTime(testNow.Add(-time.Minute)),
 		}},
-		Links: []apps.App{{ID: "default/home-assistant-http", Name: "Home Assistant", URL: "https://ha.corp.danielfrg.net", Aliases: []string{"home.corp.danielfrg.net"}}},
+		Links: []apps.App{{ID: "default/home-assistant-http", Name: "Home Assistant", URL: "https://ha.corp.danielfrg.net", Aliases: []string{"home.corp.danielfrg.net"}, Group: "Home", Icon: "home-assistant", Description: "Smart home"}},
 	}
 }
 
-func schemaGR() schema.GroupResource { return schema.GroupResource{Group: "apps", Resource: "deployments"} }
+func schemaGR() schema.GroupResource {
+	return schema.GroupResource{Group: "apps", Resource: "deployments"}
+}

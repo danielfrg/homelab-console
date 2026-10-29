@@ -34,7 +34,7 @@ func Build(raw Raw, now time.Time) Snapshot {
 	}
 	links := map[string]Link{}
 	for _, l := range raw.Links {
-		links[l.ID] = Link{Name: l.Name, URL: l.URL, Aliases: append([]string{}, l.Aliases...)}
+		links[l.ID] = Link{Name: l.Name, URL: l.URL, Aliases: append([]string{}, l.Aliases...), Description: l.Description, Group: l.Group, Icon: l.Icon}
 	}
 	owners := map[string]*App{} // "Kind/namespace/name" -> app
 	for _, obj := range raw.Applications {

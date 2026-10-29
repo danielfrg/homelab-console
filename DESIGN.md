@@ -54,24 +54,28 @@ app health check.
 
 ## Console Views
 
-The header holds the wordmark, a segmented view switcher (Links, Overview, Apps,
-Pods), and the theme control; on phones the switcher wraps to its own row.
-Views use hash routes: `#/`, `#/overview`, `#/apps`, `#/apps/<name>`, and
-`#/pods`. Links is the unchanged launcher grid.
+The UI stays minimal: the MCP tools are the main interface, and Grafana owns
+dashboards, so there is no overview page. The header holds the wordmark, a
+segmented view switcher (Apps, Pods), and the theme control; on phones the
+switcher wraps to its own row. Hash routes: `#/` (apps), `#/apps/<name>`,
+`#/pods`.
 
-- Overview: node cards (CPU, memory, role, kernel), then problems, apps needing
-  attention, and restarts in the last 24 hours as bordered row lists.
-- Apps: one table with sync and health chips, ready workloads, last deploy, and
-  primary link, filterable to apps needing attention.
-- App detail: status chips and facts, then one section per workload with its
-  pods table and a Restart button. The workload a search matched is outlined.
-- Pods: one table across namespaces with a Problems filter.
+- Apps: the launcher grid. One card per HTTPRoute link, grouped by its literal
+  route group, plus one card per Argo CD app without a link under "Without
+  links". The card opens the app page; the hostname opens the site in a new
+  tab. Two small dots show the owning app's sync and health; hover for the
+  words. Workload counts and deploy times stay on the app page.
+- App page: "Apps / name" as one heading at the same size, sync and health
+  chips, one row of facts (last deploy, last sync, links), then one section per
+  workload with its pods and a Restart button. The workload a search matched
+  is outlined.
+- Pods: one table across namespaces with a Problems filter. Pod tables show
+  pod, status, restarts (hover for the last termination), age, and Logs.
 
-Status uses kit-ui `Chip` tones: success for Synced/Healthy, warning for
-OutOfSync, danger for Degraded or a problem, info for progressing. Wide tables
-scroll inside their bordered wrapper; the page itself never scrolls sideways.
-Restart always confirms in a `Modal` with an optional reason; an unrestartable
-workload shows a disabled button whose title explains why. Logs open in a panel
-below the tables with Reload, Previous crash (when the pod has one), and Close.
-This layout was built directly and reviewed in the running app rather than from
-mockups.
+Status uses kit-ui `Chip` tones on the app page: success for Synced/Healthy,
+warning for OutOfSync, danger for Degraded or a problem, info for progressing.
+Wide tables scroll inside their bordered wrapper; the page never scrolls
+sideways. Restart always confirms in a `Modal` with an optional reason; an
+unrestartable workload shows a disabled button whose title explains why. Logs
+open in a wide `Modal` with Reload, Previous crash (when the pod has one), and
+Close.

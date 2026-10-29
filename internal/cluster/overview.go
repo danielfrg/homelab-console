@@ -17,6 +17,7 @@ type AppSummary struct {
 	Ready      string     `json:"ready" doc:"Ready workloads over total, like 4/4"`
 	Link       string     `json:"link"`
 	DeployedAt *time.Time `json:"deployed_at"`
+	Links      []Link     `json:"links" nullable:"false" doc:"Every HTTPRoute link the app owns"`
 }
 
 type Problem struct {
@@ -63,6 +64,7 @@ func (s Snapshot) Summaries() []AppSummary {
 		}
 		summary := AppSummary{Name: a.Name, Sync: a.Sync, Health: a.Health, DeployedAt: a.DeployedAt,
 			Ready: fmt.Sprintf("%d/%d", ready, len(a.Workloads))}
+		summary.Links = append([]Link{}, a.Links...)
 		if len(a.Links) > 0 {
 			summary.Link = a.Links[0].URL
 		}

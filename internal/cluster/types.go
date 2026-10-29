@@ -68,9 +68,12 @@ type App struct {
 }
 
 type Link struct {
-	Name    string   `json:"name"`
-	URL     string   `json:"url"`
-	Aliases []string `json:"aliases"`
+	Name        string   `json:"name"`
+	URL         string   `json:"url"`
+	Aliases     []string `json:"aliases"`
+	Description string   `json:"description"`
+	Group       string   `json:"group"`
+	Icon        string   `json:"icon"`
 }
 
 type Workload struct {

@@ -33,19 +33,17 @@
   });
 </script>
 
-<p class="breadcrumb"><a href="#/apps">Apps</a> /</p>
 <LoadState {loading} {error} stale={data?.stale} hasData={data !== null} retry={() => void load()}>
   {#if data}
     <header class="app-header">
-      <h2 class="mono">{data.app.name}</h2>
+      <h2 class="mono"><a class="crumb" href="#/apps">Apps</a> <span class="muted">/</span> {data.app.name}</h2>
       <StatusChip status={data.app.sync} />
       <StatusChip status={data.app.health} />
       {#if data.matched_workload}<span class="muted">matched workload <span class="mono">{data.matched_workload}</span></span>{/if}
     </header>
     <dl class="facts">
       <div><dt>Last deploy</dt><dd>{relativeTime(data.app.deployed_at)}{#if data.app.revision} · <span class="mono">{data.app.revision.slice(0, 7)}</span>{/if}</dd></div>
-      <div><dt>Last sync</dt><dd>{data.app.operation_phase || "—"}{data.app.operation_message ? ` · ${data.app.operation_message}` : ""}</dd></div>
-      <div><dt>Source</dt><dd class="mono">{data.app.source || "—"}</dd></div>
+      <div><dt>Last sync</dt><dd title={data.app.operation_message}>{data.app.operation_phase || "—"}</dd></div>
       {#if data.app.links.length}
         <div><dt>Links</dt><dd class="link-list">{#each data.app.links as link (link.url)}<a href={link.url} target="_blank" rel="noreferrer">{new URL(link.url).hostname}</a>{/each}</dd></div>
       {/if}

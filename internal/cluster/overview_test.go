@@ -60,3 +60,21 @@ func TestOverviewRecentRestarts(t *testing.T) {
 		t.Fatalf("restarts %+v", o.RecentRestarts)
 	}
 }
+
+func TestSummariesCarryLinkPresentation(t *testing.T) {
+	var ha, sofigram AppSummary
+	for _, s := range Build(fixture(), testNow).Summaries() {
+		switch s.Name {
+		case "home-assistant":
+			ha = s
+		case "sofigram":
+			sofigram = s
+		}
+	}
+	if ha.Link != "https://ha.corp.danielfrg.net" || len(ha.Links) != 1 || ha.Links[0].Icon != "home-assistant" || ha.Links[0].Group != "Home" || ha.Links[0].Name != "Home Assistant" || ha.Links[0].Description != "Smart home" {
+		t.Fatalf("%+v", ha)
+	}
+	if sofigram.Link != "" || sofigram.Links == nil || len(sofigram.Links) != 0 {
+		t.Fatalf("%+v", sofigram)
+	}
+}
