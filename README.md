@@ -136,7 +136,7 @@ during cluster API outages.
 
 ## Development
 
-Requires Go 1.25, Node 26, pnpm 10, and just.
+Requires Go 1.27, Node 26, pnpm 10, and just.
 
 The API needs a working Kubernetes context. With your own admin kubeconfig,
 restarts from the local UI or MCP endpoint are real; set
