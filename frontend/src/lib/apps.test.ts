@@ -17,15 +17,18 @@ function app(overrides: Partial<App> = {}): App {
 
 test("splits hostnames after the first label without assuming a domain", () => {
   assert.deepEqual(appHostnameParts(app()), { prefix: "sample", domain: ".example.test" });
-  assert.deepEqual(
-    appHostnameParts(app({ url: "https://files.backup.another.example" })),
-    { prefix: "files", domain: ".backup.another.example" },
-  );
+  assert.deepEqual(appHostnameParts(app({ url: "https://files.backup.another.example" })), {
+    prefix: "files",
+    domain: ".backup.another.example",
+  });
 });
 
 test("keeps single-label hosts and IP addresses intact", () => {
   for (const hostname of ["localhost", "192.0.2.1", "[2001:db8::1]"]) {
-    assert.deepEqual(appHostnameParts(app({ url: `https://${hostname}` })), { prefix: hostname, domain: "" });
+    assert.deepEqual(appHostnameParts(app({ url: `https://${hostname}` })), {
+      prefix: hostname,
+      domain: "",
+    });
   }
 });
 
@@ -50,10 +53,14 @@ test("places Favorites before default Apps and sorts other metadata groups", () 
     app({ id: "default/alpha", group: "Alpha" }),
   ]);
 
-  assert.deepEqual(grouped.map((group) => group.name), [
-    "Favorites", "Apps", "Alpha", "Infrastructure", "Zeta",
-  ]);
-  assert.deepEqual(grouped[0].apps.map((app) => app.id), ["default/favorite"]);
+  assert.deepEqual(
+    grouped.map((group) => group.name),
+    ["Favorites", "Apps", "Alpha", "Infrastructure", "Zeta"],
+  );
+  assert.deepEqual(
+    grouped[0].apps.map((app) => app.id),
+    ["default/favorite"],
+  );
 });
 
 test("does not create a Favorites shelf when no route belongs to it", () => {

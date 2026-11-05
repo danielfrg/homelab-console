@@ -25,25 +25,53 @@
     }
   }
 
-  onMount(() => { void load(); });
-  const visible = $derived((data?.pods ?? []).filter((p) =>
-    `${p.namespace}/${p.name} ${p.app} ${p.node}`.toLowerCase().includes(query.trim().toLowerCase())));
+  onMount(() => {
+    void load();
+  });
+  const visible = $derived(
+    (data?.pods ?? []).filter((p) =>
+      `${p.namespace}/${p.name} ${p.app} ${p.node}`
+        .toLowerCase()
+        .includes(query.trim().toLowerCase()),
+    ),
+  );
 </script>
 
 <div class="view-toolbar">
-  <SegmentedControl ariaLabel="Filter pods" value={problemsOnly ? "problems" : "all"}
-    options={[{ value: "all", label: "All" }, { value: "problems", label: "Problems" }]}
-    onchange={(value) => { problemsOnly = value === "problems"; void load(); }} />
-  <div class="directory-search"><SearchInput block ariaLabel="Filter pods" placeholder="Filter by name, app, or node" value={query} oninput={(v) => query = v} /></div>
+  <SegmentedControl
+    ariaLabel="Filter pods"
+    value={problemsOnly ? "problems" : "all"}
+    options={[
+      { value: "all", label: "All" },
+      { value: "problems", label: "Problems" },
+    ]}
+    onchange={(value) => {
+      problemsOnly = value === "problems";
+      void load();
+    }}
+  />
+  <div class="directory-search">
+    <SearchInput
+      block
+      ariaLabel="Filter pods"
+      placeholder="Filter by name, app, or node"
+      value={query}
+      oninput={(v) => (query = v)}
+    />
+  </div>
 </div>
 
 <LoadState {loading} {error} stale={data?.stale} hasData={data !== null} retry={() => void load()}>
   {#if visible.length === 0}
     <div class="directory-empty"><h2>{problemsOnly ? "No problem pods" : "No pods match"}</h2></div>
   {:else}
-    <PodRows pods={visible} showOwner onlogs={(pod) => logsPod = pod} />
+    <PodRows pods={visible} showOwner onlogs={(pod) => (logsPod = pod)} />
   {/if}
   {#if logsPod}
-    <LogsPanel pod={`${logsPod.namespace}/${logsPod.name}`} canPrevious={Boolean(logsPod.last_termination)} onclose={() => logsPod = null} />
+    <LogsPanel
+      pod={`${logsPod.namespace}/${logsPod.name}`}
+      canPrevious={Boolean(logsPod.last_termination)}
+      onclose={() => (logsPod = null)}
+    />
   {/if}
 </LoadState>

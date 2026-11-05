@@ -163,14 +163,21 @@ function hasArrays(value: unknown, keys: string[]): value is Record<string, unkn
 }
 
 export function parseOverview(value: unknown): Overview {
-  if (!hasArrays(value, ["nodes", "needs_attention", "problems", "recent_restarts"]) || !isRecord(value.app_totals)) {
+  if (
+    !hasArrays(value, ["nodes", "needs_attention", "problems", "recent_restarts"]) ||
+    !isRecord(value.app_totals)
+  ) {
     throw new Error("Invalid overview response");
   }
   return value as unknown as Overview;
 }
 
 export function parseAppDetail(value: unknown): AppDetail {
-  if (!hasArrays(value, ["workloads", "events"]) || !isRecord(value.app) || typeof value.app.name !== "string") {
+  if (
+    !hasArrays(value, ["workloads", "events"]) ||
+    !isRecord(value.app) ||
+    typeof value.app.name !== "string"
+  ) {
     throw new Error("Invalid app response");
   }
   return value as unknown as AppDetail;
@@ -193,17 +200,26 @@ async function errorMessage(response: Response): Promise<string> {
   return `HTTP ${response.status}`;
 }
 
-async function getJSON<T>(url: string, parse: (value: unknown) => T, signal?: AbortSignal): Promise<T> {
+async function getJSON<T>(
+  url: string,
+  parse: (value: unknown) => T,
+  signal?: AbortSignal,
+): Promise<T> {
   const response = await fetch(url, { signal });
   if (!response.ok) throw new Error(await errorMessage(response));
   return parse(await response.json());
 }
 
 export function fetchConfig(signal?: AbortSignal): Promise<{ restart_enabled: boolean }> {
-  return getJSON("/api/config", (value) => {
-    if (!isRecord(value) || typeof value.restart_enabled !== "boolean") throw new Error("Invalid config response");
-    return { restart_enabled: value.restart_enabled };
-  }, signal);
+  return getJSON(
+    "/api/config",
+    (value) => {
+      if (!isRecord(value) || typeof value.restart_enabled !== "boolean")
+        throw new Error("Invalid config response");
+      return { restart_enabled: value.restart_enabled };
+    },
+    signal,
+  );
 }
 
 export function fetchOverview(signal?: AbortSignal): Promise<Overview> {
@@ -211,13 +227,21 @@ export function fetchOverview(signal?: AbortSignal): Promise<Overview> {
 }
 
 export function parseAppList(value: unknown): AppList {
-  if (!hasArrays(value, ["apps"]) || !(value.apps as unknown[]).every((app) => hasArrays(app, ["links"]) && typeof app.name === "string")) {
+  if (
+    !hasArrays(value, ["apps"]) ||
+    !(value.apps as unknown[]).every(
+      (app) => hasArrays(app, ["links"]) && typeof app.name === "string",
+    )
+  ) {
     throw new Error("Invalid apps response");
   }
   return value as unknown as AppList;
 }
 
-export function fetchApps(status: "all" | "problems" = "all", signal?: AbortSignal): Promise<AppList> {
+export function fetchApps(
+  status: "all" | "problems" = "all",
+  signal?: AbortSignal,
+): Promise<AppList> {
   return getJSON(`/api/apps?status=${status}`, parseAppList, signal);
 }
 
@@ -229,12 +253,22 @@ export function fetchPods(problemsOnly: boolean, signal?: AbortSignal): Promise<
   return getJSON(`/api/pods?problems_only=${problemsOnly}`, parseList<PodList>("pods"), signal);
 }
 
-export function fetchLogs(pod: string, previous: boolean, lines = 200, signal?: AbortSignal): Promise<LogsResult> {
+export function fetchLogs(
+  pod: string,
+  previous: boolean,
+  lines = 200,
+  signal?: AbortSignal,
+): Promise<LogsResult> {
   const query = new URLSearchParams({ pod, previous: String(previous), lines: String(lines) });
-  return getJSON(`/api/logs?${query}`, (value) => {
-    if (!isRecord(value) || typeof value.text !== "string") throw new Error("Invalid logs response");
-    return value as unknown as LogsResult;
-  }, signal);
+  return getJSON(
+    `/api/logs?${query}`,
+    (value) => {
+      if (!isRecord(value) || typeof value.text !== "string")
+        throw new Error("Invalid logs response");
+      return value as unknown as LogsResult;
+    },
+    signal,
+  );
 }
 
 export async function restartWorkload(workload: string, reason = ""): Promise<RestartResult> {
@@ -299,9 +333,16 @@ function hostname(url: string): string {
 }
 
 export function appTiles(apps: AppSummary[]): AppTile[] {
-  return apps.flatMap((app): AppTile[] => app.links.length === 0
-    ? [{ app, link: null, title: app.name, host: "" }]
-    : app.links.map((link) => ({ app, link, title: link.name || app.name, host: hostname(link.url) })));
+  return apps.flatMap((app): AppTile[] =>
+    app.links.length === 0
+      ? [{ app, link: null, title: app.name, host: "" }]
+      : app.links.map((link) => ({
+          app,
+          link,
+          title: link.name || app.name,
+          host: hostname(link.url),
+        })),
+  );
 }
 
 // groupTiles mirrors the launcher: Favorites, then Apps, then other literal
@@ -309,18 +350,23 @@ export function appTiles(apps: AppSummary[]): AppTile[] {
 export function groupTiles(tiles: AppTile[]): { name: string; tiles: AppTile[] }[] {
   const groups = new Map<string, AppTile[]>();
   for (const tile of tiles) {
-    const name = tile.link ? (tile.link.group.trim() || "Apps") : unlinkedGroup;
+    const name = tile.link ? tile.link.group.trim() || "Apps" : unlinkedGroup;
     groups.set(name, [...(groups.get(name) ?? []), tile]);
   }
   const rank = (name: string): number =>
     name === "Favorites" ? 0 : name === "Apps" ? 1 : name === unlinkedGroup ? 3 : 2;
-  return [...groups].sort(([left], [right]) => rank(left) - rank(right) || left.localeCompare(right))
+  return [...groups]
+    .sort(([left], [right]) => rank(left) - rank(right) || left.localeCompare(right))
     .map(([name, tiles]) => ({ name, tiles }));
 }
 
 export function filterTiles(tiles: AppTile[], query: string): AppTile[] {
   const search = query.trim().toLocaleLowerCase();
   if (!search) return tiles;
-  return tiles.filter((t) => [t.app.name, t.title, t.host, t.link?.description ?? "", ...(t.link?.aliases ?? [])]
-    .join(" ").toLocaleLowerCase().includes(search));
+  return tiles.filter((t) =>
+    [t.app.name, t.title, t.host, t.link?.description ?? "", ...(t.link?.aliases ?? [])]
+      .join(" ")
+      .toLocaleLowerCase()
+      .includes(search),
+  );
 }

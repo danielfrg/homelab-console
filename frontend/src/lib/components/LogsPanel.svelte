@@ -2,7 +2,8 @@
   import { Button, Modal } from "@kenn-io/kit-ui";
   import { fetchLogs, type LogsResult } from "$lib/console.js";
 
-  let { pod, canPrevious, onclose }: { pod: string; canPrevious: boolean; onclose: () => void } = $props();
+  let { pod, canPrevious, onclose }: { pod: string; canPrevious: boolean; onclose: () => void } =
+    $props();
   let previous = $state(false);
   let logs = $state<LogsResult | null>(null);
   let loading = $state(false);
@@ -32,7 +33,13 @@
   });
 </script>
 
-<Modal title={`${pod}${previous ? " · previous" : ""}`} onclose={onclose} width="min(1100px, 94vw)" maxWidth="94vw" maxHeight="88vh">
+<Modal
+  title={`${pod}${previous ? " · previous" : ""}`}
+  {onclose}
+  width="min(1100px, 94vw)"
+  maxWidth="94vw"
+  maxHeight="88vh"
+>
   {#if error}<p role="alert" class="directory-error">{error}</p>{/if}
   {#if loading && !logs}<p role="status" class="muted">Loading logs...</p>{/if}
   {#if logs}
@@ -40,7 +47,9 @@
     {#if logs.truncated}<p class="muted small">Output was cut at 64 KiB.</p>{/if}
   {/if}
   {#snippet footer()}
-    {#if canPrevious}<Button surface="outline" onclick={() => previous = !previous}>{previous ? "Current" : "Previous crash"}</Button>{/if}
+    {#if canPrevious}<Button surface="outline" onclick={() => (previous = !previous)}
+        >{previous ? "Current" : "Previous crash"}</Button
+      >{/if}
     <Button surface="outline" disabled={loading} onclick={() => void load()}>Reload</Button>
     <Button surface="outline" onclick={onclose}>Close</Button>
   {/snippet}

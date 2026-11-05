@@ -26,7 +26,9 @@
         referrerpolicy="no-referrer"
         class="app-logo"
         data-icon={app.icon}
-        onerror={() => { failedIcon = iconURL; }}
+        onerror={() => {
+          failedIcon = iconURL;
+        }}
       />
     {:else}
       <span class="app-initials">{appInitials(app.name)}</span>

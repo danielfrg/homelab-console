@@ -23,21 +23,44 @@
     }
   }
 
-  onMount(() => { void load(); });
+  onMount(() => {
+    void load();
+  });
   const groups = $derived(groupTiles(filterTiles(appTiles(data?.apps ?? []), query)));
 </script>
 
 <div class="view-toolbar">
-  <SegmentedControl ariaLabel="Filter apps" value={status}
-    options={[{ value: "all", label: "All" }, { value: "problems", label: "Needs attention" }]}
-    onchange={(value) => { status = value as "all" | "problems"; void load(); }} />
-  <div class="directory-search"><SearchInput block ariaLabel="Search apps" placeholder="Search apps or hosts" value={query} oninput={(v) => query = v} /></div>
+  <SegmentedControl
+    ariaLabel="Filter apps"
+    value={status}
+    options={[
+      { value: "all", label: "All" },
+      { value: "problems", label: "Needs attention" },
+    ]}
+    onchange={(value) => {
+      status = value as "all" | "problems";
+      void load();
+    }}
+  />
+  <div class="directory-search">
+    <SearchInput
+      block
+      ariaLabel="Search apps"
+      placeholder="Search apps or hosts"
+      value={query}
+      oninput={(v) => (query = v)}
+    />
+  </div>
 </div>
 
 <LoadState {loading} {error} stale={data?.stale} hasData={data !== null} retry={() => void load()}>
   {#if groups.length === 0}
     <div class="directory-empty">
-      <h2>{status === "problems" && !query.trim() ? "Every app is Synced and Healthy" : "No apps match your search"}</h2>
+      <h2>
+        {status === "problems" && !query.trim()
+          ? "Every app is Synced and Healthy"
+          : "No apps match your search"}
+      </h2>
     </div>
   {:else}
     <div class="directory-groups">
@@ -45,7 +68,9 @@
         <section aria-label={group.name}>
           {#if group.name !== "Apps"}<h2 class="directory-group-title">{group.name}</h2>{/if}
           <div class="app-grid">
-            {#each group.tiles as tile (`${tile.app.name}/${tile.link?.url ?? ""}`)}<AppTile {tile} />{/each}
+            {#each group.tiles as tile (`${tile.app.name}/${tile.link?.url ?? ""}`)}<AppTile
+                {tile}
+              />{/each}
           </div>
         </section>
       {/each}

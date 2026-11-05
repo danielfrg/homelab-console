@@ -21,7 +21,10 @@ test("carries the launcher theme choice over to the console key", () => {
 });
 
 test("never overwrites an existing console choice", () => {
-  const storage = memoryStorage({ "homelab-launcher-theme": "light", "homelab-console-theme": "dark" });
+  const storage = memoryStorage({
+    "homelab-launcher-theme": "light",
+    "homelab-console-theme": "dark",
+  });
   migrateThemeKey(storage);
   assert.equal(storage.getItem("homelab-console-theme"), "dark");
 });

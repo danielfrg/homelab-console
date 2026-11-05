@@ -21,8 +21,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function parseApp(value: unknown): App {
   if (
     !isRecord(value) ||
-    typeof value.id !== "string" || !value.id.trim() ||
-    typeof value.name !== "string" || !value.name.trim() ||
+    typeof value.id !== "string" ||
+    !value.id.trim() ||
+    typeof value.name !== "string" ||
+    !value.name.trim() ||
     typeof value.url !== "string" ||
     !Array.isArray(value.aliases) ||
     !value.aliases.every((alias): alias is string => typeof alias === "string") ||
@@ -89,8 +91,12 @@ export function appHostnameParts(app: App): { prefix: string; domain: string } {
 export function filterApps(apps: App[], query: string): App[] {
   const search = query.trim().toLocaleLowerCase();
   if (!search) return apps;
-  return apps.filter((app) => [app.name, app.description, app.group, appHostname(app), ...app.aliases]
-    .join(" ").toLocaleLowerCase().includes(search));
+  return apps.filter((app) =>
+    [app.name, app.description, app.group, appHostname(app), ...app.aliases]
+      .join(" ")
+      .toLocaleLowerCase()
+      .includes(search),
+  );
 }
 
 export function groupApps(apps: App[]): { name: string; apps: App[] }[] {
@@ -100,14 +106,17 @@ export function groupApps(apps: App[]): { name: string; apps: App[] }[] {
     group.push(app);
     groups.set(app.group, group);
   }
-  const rank = (name: string): number => name === "Favorites" ? 0 : name === "Apps" ? 1 : 2;
-  return [...groups].sort(([left], [right]) => rank(left) - rank(right) || left.localeCompare(right))
+  const rank = (name: string): number => (name === "Favorites" ? 0 : name === "Apps" ? 1 : 2);
+  return [...groups]
+    .sort(([left], [right]) => rank(left) - rank(right) || left.localeCompare(right))
     .map(([name, apps]) => ({ name, apps }));
 }
 
 export function appInitials(name: string): string {
   const words = name.trim().split(/\s+/);
-  return (words.length > 1 ? `${words[0][0]}${words[1][0]}` : words[0].slice(0, 2)).toLocaleUpperCase();
+  return (
+    words.length > 1 ? `${words[0][0]}${words[1][0]}` : words[0].slice(0, 2)
+  ).toLocaleUpperCase();
 }
 
 export function appIconURL(icon: string): string | null {

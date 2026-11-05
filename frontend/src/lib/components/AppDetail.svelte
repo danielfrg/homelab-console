@@ -17,9 +17,15 @@
     loading = true;
     error = "";
     try {
-      [data, restartEnabled] = await Promise.all([fetchApp(name), fetchConfig().then((c) => c.restart_enabled)]);
+      [data, restartEnabled] = await Promise.all([
+        fetchApp(name),
+        fetchConfig().then((c) => c.restart_enabled),
+      ]);
     } catch (err) {
-      error = err instanceof Error && err.message === "Not found" ? `No app or workload named ${name}.` : "Couldn't load this app.";
+      error =
+        err instanceof Error && err.message === "Not found"
+          ? `No app or workload named ${name}.`
+          : "Couldn't load this app.";
     } finally {
       loading = false;
     }
@@ -36,33 +42,67 @@
 <LoadState {loading} {error} stale={data?.stale} hasData={data !== null} retry={() => void load()}>
   {#if data}
     <header class="app-header">
-      <h2 class="mono"><a class="crumb" href="#/apps">Apps</a> <span class="muted">/</span> {data.app.name}</h2>
+      <h2 class="mono">
+        <a class="crumb" href="#/apps">Apps</a> <span class="muted">/</span>
+        {data.app.name}
+      </h2>
       <StatusChip status={data.app.sync} />
       <StatusChip status={data.app.health} />
-      {#if data.matched_workload}<span class="muted">matched workload <span class="mono">{data.matched_workload}</span></span>{/if}
+      {#if data.matched_workload}<span class="muted"
+          >matched workload <span class="mono">{data.matched_workload}</span></span
+        >{/if}
     </header>
     <dl class="facts">
-      <div><dt>Last deploy</dt><dd>{relativeTime(data.app.deployed_at)}{#if data.app.revision} · <span class="mono">{data.app.revision.slice(0, 7)}</span>{/if}</dd></div>
-      <div><dt>Last sync</dt><dd title={data.app.operation_message}>{data.app.operation_phase || "—"}</dd></div>
+      <div>
+        <dt>Last deploy</dt>
+        <dd>
+          {relativeTime(data.app.deployed_at)}{#if data.app.revision}
+            · <span class="mono">{data.app.revision.slice(0, 7)}</span>{/if}
+        </dd>
+      </div>
+      <div>
+        <dt>Last sync</dt>
+        <dd title={data.app.operation_message}>{data.app.operation_phase || "—"}</dd>
+      </div>
       {#if data.app.links.length}
-        <div><dt>Links</dt><dd class="link-list">{#each data.app.links as link (link.url)}<a href={link.url} target="_blank" rel="noreferrer">{new URL(link.url).hostname}</a>{/each}</dd></div>
+        <div>
+          <dt>Links</dt>
+          <dd class="link-list">
+            {#each data.app.links as link (link.url)}<a
+                href={link.url}
+                target="_blank"
+                rel="noreferrer">{new URL(link.url).hostname}</a
+              >{/each}
+          </dd>
+        </div>
       {/if}
     </dl>
 
     {#each data.workloads as w (`${w.namespace}/${w.name}`)}
-      <section class="panel-section workload" class:highlight={w.name === data.matched_workload} aria-label={`${w.kind} ${w.name}`}>
+      <section
+        class="panel-section workload"
+        class:highlight={w.name === data.matched_workload}
+        aria-label={`${w.kind} ${w.name}`}
+      >
         <header class="workload-header">
-          <h3><span class="kind">{w.kind}</span> <span class="mono">{w.namespace}/{w.name}</span></h3>
+          <h3>
+            <span class="kind">{w.kind}</span> <span class="mono">{w.namespace}/{w.name}</span>
+          </h3>
           <span class="mono">{w.ready}/{w.desired} ready</span>
           <StatusChip status={w.rollout} />
-          {#if w.restarted_at}<span class="muted">restarted {relativeTime(w.restarted_at)}</span>{/if}
+          {#if w.restarted_at}<span class="muted">restarted {relativeTime(w.restarted_at)}</span
+            >{/if}
           {#if restartEnabled}
-            <RestartButton workload={`${w.namespace}/${w.name}`} label={w.name}
-              disabledReason={w.restartable ? "" : `Can't restart: ${w.not_restartable_reason}`} ondone={() => void load()} />
+            <RestartButton
+              workload={`${w.namespace}/${w.name}`}
+              label={w.name}
+              disabledReason={w.restartable ? "" : `Can't restart: ${w.not_restartable_reason}`}
+              ondone={() => void load()}
+            />
           {/if}
         </header>
         {#if w.pods.length}
-          <PodRows pods={w.pods} onlogs={(pod) => logsPod = pod} />
+          <PodRows pods={w.pods} onlogs={(pod) => (logsPod = pod)} />
         {:else}
           <p class="muted">No pods.</p>
         {/if}
@@ -70,7 +110,11 @@
     {/each}
 
     {#if logsPod}
-      <LogsPanel pod={`${logsPod.namespace}/${logsPod.name}`} canPrevious={Boolean(logsPod.last_termination)} onclose={() => logsPod = null} />
+      <LogsPanel
+        pod={`${logsPod.namespace}/${logsPod.name}`}
+        canPrevious={Boolean(logsPod.last_termination)}
+        onclose={() => (logsPod = null)}
+      />
     {/if}
 
     <section class="panel-section" aria-label="Warnings">
@@ -80,7 +124,13 @@
       {:else}
         <ul class="row-list">
           {#each data.events as e, i (i)}
-            <li><span class="mono">{e.object}</span><span class="reason">{e.reason}</span><span>{e.message}</span><span class="muted">{e.count > 1 ? `×${e.count} ` : ""}{relativeTime(e.last_seen)}</span></li>
+            <li>
+              <span class="mono">{e.object}</span><span class="reason">{e.reason}</span><span
+                >{e.message}</span
+              ><span class="muted"
+                >{e.count > 1 ? `×${e.count} ` : ""}{relativeTime(e.last_seen)}</span
+              >
+            </li>
           {/each}
         </ul>
       {/if}
