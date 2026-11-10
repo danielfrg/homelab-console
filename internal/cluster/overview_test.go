@@ -71,7 +71,7 @@ func TestSummariesCarryLinkPresentation(t *testing.T) {
 			sofigram = s
 		}
 	}
-	if ha.Link != "https://ha.corp.example.net" || len(ha.Links) != 1 || ha.Links[0].Icon != "home-assistant" || ha.Links[0].Group != "Home" || ha.Links[0].Name != "Home Assistant" || ha.Links[0].Description != "Smart home" {
+	if ha.Link != "https://ha.example.net" || len(ha.Links) != 1 || ha.Links[0].Icon != "home-assistant" || ha.Links[0].Group != "Home" || ha.Links[0].Name != "Home Assistant" || ha.Links[0].Description != "Smart home" {
 		t.Fatalf("%+v", ha)
 	}
 	if sofigram.Link != "" || sofigram.Links == nil || len(sofigram.Links) != 0 {

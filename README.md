@@ -128,6 +128,7 @@ restart annotation and events; never grant this service access to Secrets.
 | `HOMELAB_CONSOLE_API_TARGET`        | `http://127.0.0.1:8080` (frontend dev proxy) |
 | `HOMELAB_CONSOLE_FRONTEND_PORT`     | `5173` (frontend dev server)                 |
 | `HOMELAB_CONSOLE_RESTART_ENABLED`    | `true`; only `false` turns restart off       |
+| `HOMELAB_CONSOLE_NODE_ROLE_LABEL`   | `homelab.example.net/role` (node label read for a node's role) |
 | `KUBECONFIG`                         | standard kubeconfig loading                  |
 
 Liveness is `/healthz`; readiness is `/readyz`. Both check the running HTTP

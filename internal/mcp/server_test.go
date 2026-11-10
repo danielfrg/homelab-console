@@ -48,7 +48,7 @@ func testSnapshot() cluster.Snapshot {
 		UpdatedAt: testTime, ArgoAvailable: true, MetricsAvailable: true,
 		Apps: []cluster.App{
 			{Name: "home-assistant", Sync: "Synced", Health: "Healthy", Images: []string{}, Workloads: []string{"default/frigate", "default/home-assistant"},
-				Links: []cluster.Link{{Name: "Home Assistant", URL: "https://ha.corp.example.net", Aliases: []string{"home.corp.example.net"}}}},
+				Links: []cluster.Link{{Name: "Home Assistant", URL: "https://ha.example.net", Aliases: []string{"home.example.net"}}}},
 			{Name: "sofigram", Sync: "Synced", Health: "Degraded", Images: []string{}, Links: []cluster.Link{}, Workloads: []string{"default/sofigram"}},
 		},
 		Workloads: []cluster.Workload{

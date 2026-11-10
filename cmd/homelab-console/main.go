@@ -47,7 +47,7 @@ func main() {
 		log.Fatal(err)
 	}
 	enabled := restartEnabled(os.Getenv("HOMELAB_CONSOLE_RESTART_ENABLED"))
-	console := cluster.NewConsole(cluster.NewInventory(reader, catalog), typed, enabled, time.Now)
+	console := cluster.NewConsole(cluster.NewInventory(reader, catalog).WithRoleLabel(os.Getenv("HOMELAB_CONSOLE_NODE_ROLE_LABEL")), typed, enabled, time.Now)
 	log.Printf("Restart enabled: %v", enabled)
 	addr := listenAddr()
 	listener, err := net.Listen("tcp", addr)

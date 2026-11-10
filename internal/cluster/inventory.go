@@ -22,10 +22,21 @@ type Inventory struct {
 	cached Snapshot
 	fresh  bool
 	now    func() time.Time
+
+	roleLabel string
 }
 
 func NewInventory(reader Reader, links LinkSource) *Inventory {
-	return &Inventory{reader: reader, links: links, gate: make(chan struct{}, 1), now: time.Now}
+	return &Inventory{reader: reader, links: links, gate: make(chan struct{}, 1), now: time.Now, roleLabel: DefaultRoleLabel}
+}
+
+// WithRoleLabel sets the node label key read for each node's role. An empty
+// key keeps the default.
+func (i *Inventory) WithRoleLabel(key string) *Inventory {
+	if key != "" {
+		i.roleLabel = key
+	}
+	return i
 }
 
 func (i *Inventory) Snapshot(ctx context.Context, refresh bool) (Snapshot, error) {
@@ -53,7 +64,7 @@ func (i *Inventory) Snapshot(ctx context.Context, refresh bool) (Snapshot, error
 			raw.Links = links.Apps
 		}
 	}
-	i.cached = Build(raw, i.now())
+	i.cached = BuildWithRoleLabel(raw, i.now(), i.roleLabel)
 	i.fresh = true
 	return i.cached, nil
 }

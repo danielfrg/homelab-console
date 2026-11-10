@@ -26,6 +26,15 @@ var blockingWaits = map[string]bool{
 // Build joins raw cluster state into a snapshot. It is pure so the join and the
 // problem rules can be tested without a cluster.
 func Build(raw Raw, now time.Time) Snapshot {
+	return BuildWithRoleLabel(raw, now, DefaultRoleLabel)
+}
+
+// DefaultRoleLabel is the node label read for a node's role unless overridden
+// with HOMELAB_CONSOLE_NODE_ROLE_LABEL.
+const DefaultRoleLabel = "homelab.example.net/role"
+
+// BuildWithRoleLabel is Build with a custom node role label key.
+func BuildWithRoleLabel(raw Raw, now time.Time, roleLabel string) Snapshot {
 	s := Snapshot{
 		UpdatedAt:        now.UTC(),
 		ArgoAvailable:    raw.ArgoErr == nil,
@@ -72,7 +81,7 @@ func Build(raw Raw, now time.Time) Snapshot {
 	}
 
 	for _, n := range raw.Nodes {
-		s.Nodes = append(s.Nodes, buildNode(n, raw.NodeUsage, s.MetricsAvailable))
+		s.Nodes = append(s.Nodes, buildNode(n, raw.NodeUsage, s.MetricsAvailable, roleLabel))
 	}
 	sort.Slice(s.Nodes, func(i, j int) bool { return s.Nodes[i].Name < s.Nodes[j].Name })
 
@@ -369,10 +378,10 @@ func buildPod(p corev1.Pod, now time.Time) Pod {
 	return pod
 }
 
-func buildNode(n corev1.Node, usage map[string]NodeUsage, metrics bool) Node {
+func buildNode(n corev1.Node, usage map[string]NodeUsage, metrics bool, roleLabel string) Node {
 	node := Node{
 		Name: n.Name, KubeletVersion: n.Status.NodeInfo.KubeletVersion, KernelVersion: n.Status.NodeInfo.KernelVersion,
-		Role: n.Labels["homelab.example.net/role"], Pressure: []string{},
+		Role: n.Labels[roleLabel], Pressure: []string{},
 	}
 	if _, ok := n.Labels["node-role.kubernetes.io/control-plane"]; ok && node.Role == "" {
 		node.Role = "control-plane"

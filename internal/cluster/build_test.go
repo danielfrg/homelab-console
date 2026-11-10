@@ -51,7 +51,7 @@ func TestBuildJoinsAppsWorkloadsPodsLinks(t *testing.T) {
 	if !reflect.DeepEqual(ha.Workloads, []string{"default/frigate", "default/home-assistant"}) {
 		t.Fatalf("workloads %v", ha.Workloads)
 	}
-	if len(ha.Links) != 1 || ha.Links[0].URL != "https://ha.corp.example.net" || ha.Links[0].Aliases[0] != "home.corp.example.net" {
+	if len(ha.Links) != 1 || ha.Links[0].URL != "https://ha.example.net" || ha.Links[0].Aliases[0] != "home.example.net" {
 		t.Fatalf("links %+v", ha.Links)
 	}
 	if ha.Sync != "Synced" || ha.Health != "Healthy" || ha.Revision != "abc1234def" || ha.DeployedAt == nil || ha.Project != "default" {
@@ -160,5 +160,22 @@ func TestBuildOrphanPodHasNoApp(t *testing.T) {
 	s := Build(fixture(), testNow)
 	if p := findPod(t, s, "kube-system", "coredns-abc"); p.App != "" || p.Workload != "coredns" {
 		t.Fatalf("coredns pod %+v", p)
+	}
+}
+
+func TestBuildNodesCustomRoleLabel(t *testing.T) {
+	raw := fixture()
+	for i := range raw.Nodes {
+		raw.Nodes[i].Labels = map[string]string{"example.org/role": "edge"}
+	}
+	for _, n := range BuildWithRoleLabel(raw, testNow, "example.org/role").Nodes {
+		if n.Role != "edge" {
+			t.Fatalf("custom label ignored: %+v", n)
+		}
+	}
+	for _, n := range Build(raw, testNow).Nodes {
+		if n.Role == "edge" {
+			t.Fatalf("default label should not read custom key: %+v", n)
+		}
 	}
 }
