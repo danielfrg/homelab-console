@@ -7,8 +7,7 @@ one-off styling for each new control.
 
 ## Component Rules
 
-Use the shared desktop workspace theme in `frontend/src/theme.css`. We keep that file identical across the other self-hosted apps, so changes there should be generic and minimal.
-Application layout and interaction rules belong in `frontend/src/app.css`.
+Theme and component styles come from the shared design system; keep `theme.css` and `components.css` unchanged and put app-specific rules in `app.css`.
 
 - Use Svelte 5 runes, typed props, and callback props.
 - Keep desktop and phone layouts, keyboard focus, and recoverable error states.
@@ -35,7 +34,7 @@ preferences respected. Phone layouts must not widen the page.
 
 Use an 88px header and begin the content at 128px on desktop, or 110px at 640px
 and below. Center the main container with a 1344px maximum width and 32px
-desktop side padding, matching Golinks and CI View.
+desktop side padding.
 
 Keep the compact wordmark, theme control, search, and grouped portrait grid.
 The grid fills the available width with at least two columns, adding columns

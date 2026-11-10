@@ -134,7 +134,7 @@ test("makes one tile per link, grouped like the launcher, unlinked apps last", a
       ],
     }),
     summary({ name: "plex", links: [link("https://plex.example", { group: "Media" })] }),
-    summary({ name: "golinks", links: [link("https://go.example", { group: "Favorites" })] }),
+    summary({ name: "grafana", links: [link("https://go.example", { group: "Favorites" })] }),
   ]);
   assert.deepEqual(
     tiles.map((t) => [t.app.name, t.title]),
@@ -143,13 +143,13 @@ test("makes one tile per link, grouped like the launcher, unlinked apps last", a
       ["home-assistant", "Frigate"],
       ["home-assistant", "Home Assistant"],
       ["plex", "plex"],
-      ["golinks", "golinks"],
+      ["grafana", "grafana"],
     ],
   );
   assert.deepEqual(
     groupTiles(tiles).map((g) => [g.name, g.tiles.map((t) => t.title)]),
     [
-      ["Favorites", ["golinks"]],
+      ["Favorites", ["grafana"]],
       ["Apps", ["Frigate", "Home Assistant"]],
       ["Media", ["plex"]],
       ["Without links", ["metallb"]],
@@ -170,7 +170,7 @@ test("filters tiles by app name, title, hostname, alias, and description", async
         }),
       ],
     }),
-    summary({ name: "budget" }),
+    summary({ name: "paperless" }),
   ]);
   for (const query of ["HOME-ass", "assistant", "ha.example", "home.example", "smart"]) {
     assert.deepEqual(
@@ -185,11 +185,11 @@ test("filters tiles by app name, title, hostname, alias, and description", async
 test("rejects an app list whose apps lack links", async () => {
   const { parseAppList } = await import("./console.ts");
   assert.throws(
-    () => parseAppList({ apps: [{ name: "budget" }], updated_at: "", stale: false }),
+    () => parseAppList({ apps: [{ name: "paperless" }], updated_at: "", stale: false }),
     /Invalid apps/,
   );
   assert.equal(
-    parseAppList({ apps: [{ name: "budget", links: [] }], updated_at: "", stale: false }).apps
+    parseAppList({ apps: [{ name: "paperless", links: [] }], updated_at: "", stale: false }).apps
       .length,
     1,
   );

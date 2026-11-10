@@ -103,7 +103,7 @@ func TestLogsPreviousUnavailable(t *testing.T) {
 	if !strings.Contains(userMessage(t, err), "no previous container logs") {
 		t.Fatal(err)
 	}
-	if _, err = rig.console.Logs(context.Background(), LogsRequest{Workload: "sofigram", Previous: true}); err != nil || !rig.logOpts.Previous {
+	if _, err = rig.console.Logs(context.Background(), LogsRequest{Workload: "sonarr", Previous: true}); err != nil || !rig.logOpts.Previous {
 		t.Fatal(err)
 	}
 }
@@ -185,7 +185,7 @@ func TestRestartRefusals(t *testing.T) {
 
 func TestRestartAllowsCrashingWorkload(t *testing.T) {
 	rig := newRig(t, true, nil)
-	if _, err := rig.console.Restart(context.Background(), RestartRequest{Workload: "sofigram"}); err != nil {
+	if _, err := rig.console.Restart(context.Background(), RestartRequest{Workload: "sonarr"}); err != nil {
 		t.Fatal(err)
 	}
 }

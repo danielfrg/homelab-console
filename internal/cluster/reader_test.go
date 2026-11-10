@@ -51,7 +51,7 @@ func fakeTyped() *fake.Clientset {
 }
 
 func TestReaderListsSources(t *testing.T) {
-	app := application("sofigram", "Synced", "Healthy", nil, resourceRef{"Deployment", "default", "sofigram"})
+	app := application("sonarr", "Synced", "Healthy", nil, resourceRef{"Deployment", "default", "sonarr"})
 	dyn := fakeDynamic(&app)
 	if err := dyn.Tracker().Create(nodeMetricsGVR, nodeMetrics("srv-nuc-01", "500m", "4Gi"), ""); err != nil {
 		t.Fatal(err)

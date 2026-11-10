@@ -2,10 +2,9 @@
 
 ## Users
 
-Daniel, running a K3s homelab with Argo CD, and the agents he talks to (OpenClaw
-over Telegram). He wants to find and open apps, see whether the cluster is
-healthy, read why something broke, and restart it, including when he is away
-from home.
+Someone running a K3s homelab with Argo CD, and the agents they talk to. They
+want to find and open apps, see whether the cluster is healthy, read why
+something broke, and restart it, including when away from home.
 
 Assumes deployment on a trusted network; there is no auth.
 

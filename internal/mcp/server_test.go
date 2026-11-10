@@ -49,20 +49,20 @@ func testSnapshot() cluster.Snapshot {
 		Apps: []cluster.App{
 			{Name: "home-assistant", Sync: "Synced", Health: "Healthy", Images: []string{}, Workloads: []string{"default/frigate", "default/home-assistant"},
 				Links: []cluster.Link{{Name: "Home Assistant", URL: "https://ha.example.net", Aliases: []string{"home.example.net"}}}},
-			{Name: "sofigram", Sync: "Synced", Health: "Degraded", Images: []string{}, Links: []cluster.Link{}, Workloads: []string{"default/sofigram"}},
+			{Name: "sonarr", Sync: "Synced", Health: "Degraded", Images: []string{}, Links: []cluster.Link{}, Workloads: []string{"default/sonarr"}},
 		},
 		Workloads: []cluster.Workload{
 			{App: "home-assistant", Kind: "Deployment", Namespace: "default", Name: "frigate", Desired: 1, Ready: 1, Rollout: "complete", Restartable: true, Pods: []string{"frigate-abc"}},
 			{App: "home-assistant", Kind: "Deployment", Namespace: "default", Name: "home-assistant", Desired: 1, Ready: 1, Rollout: "complete", Restartable: true, Pods: []string{"home-assistant-abc"}},
-			{App: "sofigram", Kind: "Deployment", Namespace: "default", Name: "sofigram", Desired: 1, Ready: 0, Rollout: "complete", Restartable: true, Pods: []string{"sofigram-abc"}},
+			{App: "sonarr", Kind: "Deployment", Namespace: "default", Name: "sonarr", Desired: 1, Ready: 0, Rollout: "complete", Restartable: true, Pods: []string{"sonarr-abc"}},
 		},
 		Pods: []cluster.Pod{
 			{Namespace: "default", Name: "frigate-abc", App: "home-assistant", Workload: "frigate", Phase: "Running", Node: "srv-nuc-02", Ready: true, Images: []string{}, Containers: []string{"frigate"}},
 			{Namespace: "default", Name: "home-assistant-abc", App: "home-assistant", Workload: "home-assistant", Phase: "Running", Node: "srv-nuc-01", Ready: true, Images: []string{}, Containers: []string{"home-assistant"}},
-			{Namespace: "default", Name: "sofigram-abc", App: "sofigram", Workload: "sofigram", Phase: "Running", Node: "srv-nuc-02", Problem: "CrashLoopBackOff", Images: []string{}, Containers: []string{"sofigram"}},
+			{Namespace: "default", Name: "sonarr-abc", App: "sonarr", Workload: "sonarr", Phase: "Running", Node: "srv-nuc-02", Problem: "CrashLoopBackOff", Images: []string{}, Containers: []string{"sonarr"}},
 		},
 		Nodes:  []cluster.Node{{Name: "srv-nuc-01", Ready: true, Pressure: []string{}}},
-		Events: []cluster.Event{{Namespace: "default", Object: "Pod/sofigram-abc", Reason: "BackOff", Message: "Back-off", LastSeen: testTime}},
+		Events: []cluster.Event{{Namespace: "default", Object: "Pod/sonarr-abc", Reason: "BackOff", Message: "Back-off", LastSeen: testTime}},
 	}
 }
 
@@ -81,7 +81,7 @@ func TestConsoleTools(t *testing.T) {
 		t.Fatal(v)
 	}
 	problems := call(t, s, "list_apps", map[string]any{"status": "problems"}, false)
-	if problems["total"] != float64(1) || problems["apps"].([]any)[0].(map[string]any)["name"] != "sofigram" {
+	if problems["total"] != float64(1) || problems["apps"].([]any)[0].(map[string]any)["name"] != "sonarr" {
 		t.Fatal(problems)
 	}
 	call(t, s, "list_apps", map[string]any{"status": "weird"}, true)
@@ -89,9 +89,9 @@ func TestConsoleTools(t *testing.T) {
 	if app["matched_workload"] != "frigate" || len(app["workloads"].([]any)) != 2 {
 		t.Fatal(app)
 	}
-	sofigram := call(t, s, "get_app", map[string]any{"name": "sofigram"}, false)
-	if len(sofigram["events"].([]any)) != 1 || len(sofigram["workloads"].([]any)[0].(map[string]any)["pods"].([]any)) != 1 {
-		t.Fatal(sofigram)
+	sonarr := call(t, s, "get_app", map[string]any{"name": "sonarr"}, false)
+	if len(sonarr["events"].([]any)) != 1 || len(sonarr["workloads"].([]any)[0].(map[string]any)["pods"].([]any)) != 1 {
+		t.Fatal(sonarr)
 	}
 	call(t, s, "get_app", map[string]any{"name": "nope"}, true)
 	pods := call(t, s, "list_pods", map[string]any{"problems_only": true}, false)

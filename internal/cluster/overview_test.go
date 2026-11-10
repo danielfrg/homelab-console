@@ -14,7 +14,7 @@ func TestOverviewTotalsAndAttention(t *testing.T) {
 			t.Fatalf("totals %v", o.AppTotals)
 		}
 	}
-	if len(o.NeedsAttention) != 2 || o.NeedsAttention[0].Name != "plex" || o.NeedsAttention[1].Name != "sofigram" {
+	if len(o.NeedsAttention) != 2 || o.NeedsAttention[0].Name != "plex" || o.NeedsAttention[1].Name != "sonarr" {
 		t.Fatalf("attention %+v", o.NeedsAttention)
 	}
 	if o.NeedsAttention[1].Ready != "0/1" {
@@ -37,7 +37,7 @@ func TestOverviewProblems(t *testing.T) {
 		}
 		return false
 	}
-	if !has("pod", "sofigram-abc", "CrashLoopBackOff") || !has("workload", "sofigram", "0/1 ready") || !has("node", "srv-rpi-01", "NotReady") {
+	if !has("pod", "sonarr-abc", "CrashLoopBackOff") || !has("workload", "sonarr", "0/1 ready") || !has("node", "srv-rpi-01", "NotReady") {
 		t.Fatalf("problems %+v", o.Problems)
 	}
 	if p := o.Problems[0]; p.Kind != "node" {
@@ -62,19 +62,19 @@ func TestOverviewRecentRestarts(t *testing.T) {
 }
 
 func TestSummariesCarryLinkPresentation(t *testing.T) {
-	var ha, sofigram AppSummary
+	var ha, sonarr AppSummary
 	for _, s := range Build(fixture(), testNow).Summaries() {
 		switch s.Name {
 		case "home-assistant":
 			ha = s
-		case "sofigram":
-			sofigram = s
+		case "sonarr":
+			sonarr = s
 		}
 	}
 	if ha.Link != "https://ha.example.net" || len(ha.Links) != 1 || ha.Links[0].Icon != "home-assistant" || ha.Links[0].Group != "Home" || ha.Links[0].Name != "Home Assistant" || ha.Links[0].Description != "Smart home" {
 		t.Fatalf("%+v", ha)
 	}
-	if sofigram.Link != "" || sofigram.Links == nil || len(sofigram.Links) != 0 {
-		t.Fatalf("%+v", sofigram)
+	if sonarr.Link != "" || sonarr.Links == nil || len(sonarr.Links) != 0 {
+		t.Fatalf("%+v", sonarr)
 	}
 }

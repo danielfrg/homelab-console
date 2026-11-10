@@ -109,13 +109,13 @@ func TestBuildPodProblems(t *testing.T) {
 	oldOOM.Status.ContainerStatuses[0].LastTerminationState = corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{Reason: "OOMKilled", ExitCode: 137, FinishedAt: metav1.NewTime(testNow.Add(-30 * time.Hour))}}
 	raw.Pods = append(raw.Pods, pending, fresh, recentOOM, oldOOM)
 	s := Build(raw, testNow)
-	cases := map[string]string{"sofigram-abc": "CrashLoopBackOff", "pending-long": "Pending", "pending-fresh": "", "oom-recent": "OOMKilled", "oom-old": "", "frigate-abc": ""}
+	cases := map[string]string{"sonarr-abc": "CrashLoopBackOff", "pending-long": "Pending", "pending-fresh": "", "oom-recent": "OOMKilled", "oom-old": "", "frigate-abc": ""}
 	for name, want := range cases {
 		if got := findPod(t, s, "default", name).Problem; got != want {
 			t.Errorf("%s problem %q want %q", name, got, want)
 		}
 	}
-	crash := findPod(t, s, "default", "sofigram-abc")
+	crash := findPod(t, s, "default", "sonarr-abc")
 	if crash.Restarts != 7 || crash.Waiting != "CrashLoopBackOff" || crash.LastTermination == nil || crash.LastTermination.ExitCode != 1 {
 		t.Fatalf("crash %+v", crash)
 	}
@@ -134,8 +134,8 @@ func TestBuildRollout(t *testing.T) {
 	if got := findWorkload(t, s, "default", "home-assistant").Rollout; got != "progressing" {
 		t.Fatalf("home-assistant rollout %q", got)
 	}
-	if got := findWorkload(t, s, "default", "sofigram").Rollout; got != "complete" {
-		t.Fatalf("sofigram rollout %q", got)
+	if got := findWorkload(t, s, "default", "sonarr").Rollout; got != "complete" {
+		t.Fatalf("sonarr rollout %q", got)
 	}
 }
 

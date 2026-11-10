@@ -32,13 +32,9 @@ They are written for humans: avoid big restructures, but update them when change
 - Health probes report the HTTP service independently of Kubernetes availability.
 - MCP tools read the same cached snapshot as the HTTP API (only logs and
   restart go live); lists are bounded and stable, and errors are sanitized.
-- Keep `internal/mcp/http.go`, `paging.go`, and `annotations.go` byte-identical
-  with the sibling apps; put new MCP helpers in new files.
+- Keep `internal/mcp/http.go`, `paging.go`, and `annotations.go` unchanged
+  unless the transport itself changes; put new MCP helpers in new files.
 
 ## Frontend Conventions
 
 `DESIGN.md` owns the theme, typography, layout, and interaction rules; read it before changing the frontend.
-
-## Deployment
-
-Daniel (danielfrg/danrodriguez) deploys this service in his homelab; the deployment source is in `~/code/danielfrg/homelab`.
