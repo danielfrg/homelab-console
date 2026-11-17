@@ -15,7 +15,7 @@ That folder is never edited by hand: change it in design-system and sync.
   using one; use `Button`, `Input`, `SegmentedControl`, `Dialog` and `AlertDialog`, not bare
   `<button>` or `<input>` elements.
 - Use Svelte 5 runes, typed props, and callback props.
-- `app.css` loads before the theme and starts with `@layer ui-sdk;`. It holds layout and
+- `app.css` loads last (after the synced design-system CSS, so its rules win ties with the theme) and starts with `@layer ui-sdk;`. It holds layout and
   console-specific pieces only: it may adjust a control's layout (width, spacing), never its look.
   Raise specificity (`.page .thing`) instead of using `!important`.
 - Use tokens (`--ink`, `--muted`, `--line`, `--space-*`, `--radius-*`). `--mono` is for logs
