@@ -8,6 +8,8 @@ through MCP. It also keeps the launchpad: app links are discovered from Gateway
 API HTTPRoutes, and route annotations supply presentation metadata, so there is
 no separate app inventory to maintain.
 
+**Personal project**: This is completely vibe coded for my own personal use. I won't be accepting feature requests or PRs. You're welcome to fork it and make it your own.
+
 ![Homelab Console](docs/screenshots/homepage.png)
 
 ## Installation
