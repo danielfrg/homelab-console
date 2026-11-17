@@ -1,8 +1,15 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { SearchInput, SegmentedControl } from "@kenn-io/kit-ui";
+  import {
+    SegmentedControl,
+    SegmentedControlIndicator,
+    SegmentedControlItem,
+  } from "@ui-sdk/svelte/segmented-control";
+  import { Input, InputClear, InputGroup } from "@ui-sdk/svelte/input";
+  import { SearchIcon, XIcon } from "@lucide/svelte";
   import { appTiles, fetchApps, filterTiles, groupTiles, type AppList } from "$lib/console.js";
   import AppTile from "./AppTile.svelte";
+  import EmptyState from "./EmptyState.svelte";
   import LoadState from "./LoadState.svelte";
 
   let data = $state<AppList | null>(null);
@@ -31,37 +38,38 @@
 
 <div class="view-toolbar">
   <SegmentedControl
-    ariaLabel="Filter apps"
+    aria-label="Filter apps"
     value={status}
-    options={[
-      { value: "all", label: "All" },
-      { value: "problems", label: "Needs attention" },
-    ]}
-    onchange={(value) => {
+    onValueChange={(value) => {
+      if (!value) return;
       status = value as "all" | "problems";
       void load();
     }}
-  />
-  <div class="directory-search">
-    <SearchInput
-      block
-      ariaLabel="Search apps"
+  >
+    <SegmentedControlIndicator />
+    <SegmentedControlItem value="all">All</SegmentedControlItem>
+    <SegmentedControlItem value="problems">Needs attention</SegmentedControlItem>
+  </SegmentedControl>
+  <InputGroup class="search">
+    <SearchIcon aria-hidden="true" />
+    <Input
+      type="search"
+      bind:value={query}
+      aria-label="Search apps"
       placeholder="Search apps or hosts"
-      value={query}
-      oninput={(v) => (query = v)}
+      autocomplete="off"
     />
-  </div>
+    <InputClear aria-label="Clear search"><XIcon aria-hidden="true" /></InputClear>
+  </InputGroup>
 </div>
 
 <LoadState {loading} {error} stale={data?.stale} hasData={data !== null} retry={() => void load()}>
   {#if groups.length === 0}
-    <div class="directory-empty">
-      <h2>
-        {status === "problems" && !query.trim()
-          ? "Every app is Synced and Healthy"
-          : "No apps match your search"}
-      </h2>
-    </div>
+    <EmptyState
+      title={status === "problems" && !query.trim()
+        ? "Every app is Synced and Healthy"
+        : "No apps match your search"}
+    />
   {:else}
     <div class="directory-groups">
       {#each groups as group (group.name)}

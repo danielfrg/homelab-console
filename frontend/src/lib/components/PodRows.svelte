@@ -1,5 +1,17 @@
 <script lang="ts">
-  import { relativeTime, type Pod } from "$lib/console.js";
+  import { Button } from "@ui-sdk/svelte/button";
+  import { formatRelativeTime, formatTimestamp } from "$lib/format.js";
+  import type { Pod } from "$lib/console.js";
+  import {
+    sortRows,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+    type TableSort,
+  } from "../../design-system/custom/table";
   import StatusChip from "./StatusChip.svelte";
 
   let {
@@ -7,43 +19,75 @@
     showOwner = false,
     onlogs,
   }: { pods: Pod[]; showOwner?: boolean; onlogs: (pod: Pod) => void } = $props();
+
+  let sort = $state<TableSort | null>(null);
+
+  const status = (pod: Pod): string =>
+    pod.problem ? "Degraded" : pod.ready ? "Healthy" : pod.phase;
+  const rows = $derived(
+    sortRows(pods, sort, (pod, key) => {
+      switch (key) {
+        case "name":
+          return `${pod.namespace}/${pod.name}`;
+        case "app":
+          return pod.app || null;
+        case "status":
+          return status(pod);
+        case "restarts":
+          return pod.restarts;
+        case "age":
+          return pod.started_at ? Date.parse(pod.started_at) : null;
+        default:
+          return null;
+      }
+    }),
+  );
 </script>
 
-<div class="table-wrap">
-  <table class="data-table">
-    <thead>
-      <tr
-        ><th>Pod</th>{#if showOwner}<th>App</th>{/if}<th>Status</th><th>Restarts</th><th>Age</th><th
-          ><span class="sr-only">Logs</span></th
-        ></tr
-      >
-    </thead>
-    <tbody>
-      {#each pods as pod (`${pod.namespace}/${pod.name}`)}
-        <tr>
-          <td class="mono">{showOwner ? `${pod.namespace}/` : ""}{pod.name}</td>
-          {#if showOwner}<td
-              >{#if pod.app}<a class="mono" href={`#/apps/${encodeURIComponent(pod.app)}`}
+<div class="panel">
+  <Table bind:sort>
+    <TableHeader>
+      <TableRow>
+        <TableHead sortKey="name">Pod</TableHead>
+        {#if showOwner}<TableHead sortKey="app">App</TableHead>{/if}
+        <TableHead sortKey="status">Status</TableHead>
+        <TableHead sortKey="restarts" firstDirection="desc" align="end">Restarts</TableHead>
+        <!-- Newest first: the largest start time is the youngest pod. -->
+        <TableHead sortKey="age" firstDirection="desc">Age</TableHead>
+        <TableHead><span class="sr-only">Logs</span></TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      {#each rows as pod (`${pod.namespace}/${pod.name}`)}
+        <TableRow>
+          <TableCell class="mono">{showOwner ? `${pod.namespace}/` : ""}{pod.name}</TableCell>
+          {#if showOwner}
+            <TableCell>
+              {#if pod.app}<a class="mono" href={`#/apps/${encodeURIComponent(pod.app)}`}
                   >{pod.app}</a
-                >{:else}<span class="muted">—</span>{/if}</td
-            >{/if}
-          <td>
+                >{:else}<span class="muted">—</span>{/if}
+            </TableCell>
+          {/if}
+          <TableCell>
             {#if pod.problem}<StatusChip status="Degraded" />
               <span class="reason">{pod.problem}</span>
             {:else}<StatusChip status={pod.ready ? "Healthy" : pod.phase} />{/if}
-          </td>
-          <td
+          </TableCell>
+          <TableCell
+            align="end"
             class="mono"
             title={pod.last_termination
-              ? `Last: ${pod.last_termination.reason} (exit ${pod.last_termination.exit_code}) ${relativeTime(pod.last_termination.finished_at)}`
-              : undefined}>{pod.restarts}</td
+              ? `Last: ${pod.last_termination.reason} (exit ${pod.last_termination.exit_code}) ${formatRelativeTime(pod.last_termination.finished_at)}`
+              : undefined}>{pod.restarts}</TableCell
           >
-          <td class="muted">{relativeTime(pod.started_at)}</td>
-          <td
-            ><button class="link-button" type="button" onclick={() => onlogs(pod)}>Logs</button></td
+          <TableCell class="muted" title={formatTimestamp(pod.started_at)}
+            >{formatRelativeTime(pod.started_at)}</TableCell
           >
-        </tr>
+          <TableCell align="end">
+            <Button data-variant="link" onclick={() => onlogs(pod)}>Logs</Button>
+          </TableCell>
+        </TableRow>
       {/each}
-    </tbody>
-  </table>
+    </TableBody>
+  </Table>
 </div>

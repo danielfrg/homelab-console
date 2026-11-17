@@ -38,3 +38,7 @@ They are written for humans: avoid big restructures, but update them when change
 ## Frontend Conventions
 
 `DESIGN.md` owns the theme, typography, layout, and interaction rules; read it before changing the frontend.
+
+`frontend/src/design-system/` is synced from the shared design-system repo
+(`pnpm sync homelab-console` there) and is never edited by hand. Change it in
+design-system, sync, and check with `pnpm sync --check`.

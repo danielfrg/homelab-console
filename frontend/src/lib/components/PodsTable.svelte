@@ -1,7 +1,14 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { SearchInput, SegmentedControl } from "@kenn-io/kit-ui";
+  import {
+    SegmentedControl,
+    SegmentedControlIndicator,
+    SegmentedControlItem,
+  } from "@ui-sdk/svelte/segmented-control";
+  import { Input, InputClear, InputGroup } from "@ui-sdk/svelte/input";
+  import { SearchIcon, XIcon } from "@lucide/svelte";
   import { fetchPods, type Pod, type PodList } from "$lib/console.js";
+  import EmptyState from "./EmptyState.svelte";
   import LoadState from "./LoadState.svelte";
   import LogsPanel from "./LogsPanel.svelte";
   import PodRows from "./PodRows.svelte";
@@ -39,31 +46,34 @@
 
 <div class="view-toolbar">
   <SegmentedControl
-    ariaLabel="Filter pods"
+    aria-label="Filter pods"
     value={problemsOnly ? "problems" : "all"}
-    options={[
-      { value: "all", label: "All" },
-      { value: "problems", label: "Problems" },
-    ]}
-    onchange={(value) => {
+    onValueChange={(value) => {
+      if (!value) return;
       problemsOnly = value === "problems";
       void load();
     }}
-  />
-  <div class="directory-search">
-    <SearchInput
-      block
-      ariaLabel="Filter pods"
+  >
+    <SegmentedControlIndicator />
+    <SegmentedControlItem value="all">All</SegmentedControlItem>
+    <SegmentedControlItem value="problems">Problems</SegmentedControlItem>
+  </SegmentedControl>
+  <InputGroup class="search">
+    <SearchIcon aria-hidden="true" />
+    <Input
+      type="search"
+      bind:value={query}
+      aria-label="Filter pods"
       placeholder="Filter by name, app, or node"
-      value={query}
-      oninput={(v) => (query = v)}
+      autocomplete="off"
     />
-  </div>
+    <InputClear aria-label="Clear filter"><XIcon aria-hidden="true" /></InputClear>
+  </InputGroup>
 </div>
 
 <LoadState {loading} {error} stale={data?.stale} hasData={data !== null} retry={() => void load()}>
   {#if visible.length === 0}
-    <div class="directory-empty"><h2>{problemsOnly ? "No problem pods" : "No pods match"}</h2></div>
+    <EmptyState title={problemsOnly ? "No problem pods" : "No pods match"} />
   {:else}
     <PodRows pods={visible} showOwner onlogs={(pod) => (logsPod = pod)} />
   {/if}

@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
-  import { Button } from "@kenn-io/kit-ui";
+  import { Button } from "@ui-sdk/svelte/button";
+  import Spinner from "./Spinner.svelte";
 
   let {
     loading,
@@ -20,22 +21,18 @@
 </script>
 
 {#if error}
-  <div role="alert" class="directory-notice directory-error">
+  <div role="alert" class="notice error">
     <p>{hasData ? `${error} Showing the last data; it may be stale.` : error}</p>
-    <Button surface="outline" disabled={loading} onclick={retry}
-      >{loading ? "Retrying..." : "Retry"}</Button
-    >
+    <Button disabled={loading} onclick={retry}>{loading ? "Retrying..." : "Retry"}</Button>
   </div>
 {:else if stale}
-  <div role="status" class="directory-notice">
+  <div role="status" class="notice warn">
     <p>Cluster data may be stale. Showing the last successful read.</p>
-    <Button surface="outline" disabled={loading} onclick={retry}
-      >{loading ? "Retrying..." : "Retry"}</Button
-    >
+    <Button disabled={loading} onclick={retry}>{loading ? "Retrying..." : "Retry"}</Button>
   </div>
 {/if}
 {#if loading && !hasData}
-  <p role="status" class="directory-empty">Loading...</p>
+  <div class="center"><Spinner label="Loading" /></div>
 {:else if hasData}
   {@render children()}
 {/if}

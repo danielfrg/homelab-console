@@ -304,15 +304,6 @@ export function statusTone(status: string): Tone {
   }
 }
 
-export function relativeTime(value: string | null | undefined, now = Date.now()): string {
-  if (!value) return "—";
-  const seconds = Math.max(0, Math.round((now - Date.parse(value)) / 1000));
-  if (seconds < 60) return `${seconds}s ago`;
-  if (seconds < 3600) return `${Math.round(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.round(seconds / 3600)}h ago`;
-  return `${Math.round(seconds / 86400)}d ago`;
-}
-
 const unlinkedGroup = "Without links";
 
 // AppTile is one card in the grid: one per HTTPRoute link, or one per app

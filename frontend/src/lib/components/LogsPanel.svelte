@@ -1,6 +1,8 @@
 <script lang="ts">
-  import { Button, Modal } from "@kenn-io/kit-ui";
+  import { Button } from "@ui-sdk/svelte/button";
   import { fetchLogs, type LogsResult } from "$lib/console.js";
+  import Modal from "./Modal.svelte";
+  import Spinner from "./Spinner.svelte";
 
   let { pod, canPrevious, onclose }: { pod: string; canPrevious: boolean; onclose: () => void } =
     $props();
@@ -33,24 +35,18 @@
   });
 </script>
 
-<Modal
-  title={`${pod}${previous ? " · previous" : ""}`}
-  {onclose}
-  width="min(1100px, 94vw)"
-  maxWidth="94vw"
-  maxHeight="88vh"
->
-  {#if error}<p role="alert" class="directory-error">{error}</p>{/if}
-  {#if loading && !logs}<p role="status" class="muted">Loading logs...</p>{/if}
+<Modal title={`${pod}${previous ? " · previous" : ""}`} size="xl" {onclose}>
+  {#if error}<p role="alert" class="notice error">{error}</p>{/if}
+  {#if loading && !logs}<div class="center"><Spinner label="Loading logs" /></div>{/if}
   {#if logs}
     <pre class="logs-text">{logs.text || "(no output)"}</pre>
     {#if logs.truncated}<p class="muted small">Output was cut at 64 KiB.</p>{/if}
   {/if}
   {#snippet footer()}
-    {#if canPrevious}<Button surface="outline" onclick={() => (previous = !previous)}
+    {#if canPrevious}<Button onclick={() => (previous = !previous)}
         >{previous ? "Current" : "Previous crash"}</Button
       >{/if}
-    <Button surface="outline" disabled={loading} onclick={() => void load()}>Reload</Button>
-    <Button surface="outline" onclick={onclose}>Close</Button>
+    <Button disabled={loading} onclick={() => void load()}>Reload</Button>
+    <Button onclick={onclose}>Close</Button>
   {/snippet}
 </Modal>

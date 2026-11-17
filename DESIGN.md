@@ -7,28 +7,30 @@ one-off styling for each new control.
 
 ## Component Rules
 
-Theme and component styles come from the shared design system.
+The theme (Cadence), the table, the theme toggle and the status badge come from the shared
+design system, copied into `frontend/src/design-system/` by `pnpm sync` in the design-system repo.
+That folder is never edited by hand: change it in design-system and sync.
 
+- Controls come from `@ui-sdk/svelte` (pinned exactly). Follow the ui-sdk skill and docs before
+  using one; use `Button`, `Input`, `SegmentedControl`, `Dialog` and `AlertDialog`, not bare
+  `<button>` or `<input>` elements.
 - Use Svelte 5 runes, typed props, and callback props.
-- Keep desktop and phone layouts, keyboard focus, and recoverable error states.
-- Load Inter and IBM Plex Mono from Google Fonts with `display=swap`. Do not
-embed font binaries in the repository or production assets.
-- Inter is for interface text; IBM Plex Mono is for wordmarks, identifiers, and
-technical data. Use neutral surfaces, subtle one-pixel borders, rounded controls,
-and no decorative shadows.
-- Focus is blue in light mode and amber in dark mode.
-- Preserve `scrollbar-gutter: stable`.
-- Import shared controls directly from `@kenn-io/kit-ui`.
-- Use semantic theme tokens and keep the library's default control sizes.
+- `app.css` loads before the theme and starts with `@layer ui-sdk;`. It holds layout and
+  console-specific pieces only: it may adjust a control's layout (width, spacing), never its look.
+  Raise specificity (`.page .thing`) instead of using `!important`.
+- Use tokens (`--ink`, `--muted`, `--line`, `--space-*`, `--radius-*`). `--mono` is for logs
+  and identifiers. No fonts are loaded or embedded: the theme uses the system font stack.
+- Style custom wrappers with a class, not `data-slot` (ui-sdk sets `data-slot` itself).
+- Modals use the local `Modal` (a ui-sdk `Dialog`); destructive confirmations use `AlertDialog`.
 - Keep local components for app-specific behavior, not pass-through wrappers.
-- Give fields one visible focus treatment and keep pressed controls stationary.
+- Preserve `scrollbar-gutter: stable`. Keep focus visible and pressed controls stationary.
 
 ## Appearance and Accessibility
 
-Start in dark mode and respect explicit light or system preferences. The header
-ThemeToggle saves the choice under the app's own storage key. System mode follows
-the operating system. Keep focus visible, controls labeled, and reduced-motion
-preferences respected. Phone layouts must not widen the page.
+Start in dark mode and respect explicit light or system preferences. The header ThemeToggle saves
+the choice under the shared `color-scheme` localStorage key, and the `preferencesScript` Vite
+plugin applies it before first paint. System mode follows the operating system. Keep controls
+labeled and reduced-motion preferences respected. Phone layouts must not widen the page.
 
 ## Application Patterns
 
@@ -68,13 +70,13 @@ switcher wraps to its own row. Hash routes: `#/` (apps), `#/apps/<name>`,
   chips, one row of facts (last deploy, last sync, links), then one section per
   workload with its pods and a Restart button. The workload a search matched
   is outlined.
-- Pods: one table across namespaces with a Problems filter. Pod tables show
+- Pods: one table across namespaces with a Problems filter. Pod tables are sortable and show
   pod, status, restarts (hover for the last termination), age, and Logs.
 
-Status uses kit-ui `Chip` tones on the app page: success for Synced/Healthy,
+Status uses the shared `StatusBadge` tones on the app and pod pages: success for Synced/Healthy,
 warning for OutOfSync, danger for Degraded or a problem, info for progressing.
-Wide tables scroll inside their bordered wrapper; the page never scrolls
-sideways. Restart always confirms in a `Modal` with an optional reason; an
+Wide tables scroll inside their bordered panel; the page never scrolls
+sideways. Restart always confirms in an `AlertDialog` with an optional reason; an
 unrestartable workload shows a disabled button whose title explains why. Logs
 open in a wide `Modal` with Reload, Previous crash (when the pod has one), and
 Close.
