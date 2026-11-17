@@ -18,6 +18,7 @@
         loading="lazy"
         referrerpolicy="no-referrer"
         class="app-logo"
+        data-icon={tile.link?.icon}
         onerror={() => {
           failedIcon = iconURL;
         }}

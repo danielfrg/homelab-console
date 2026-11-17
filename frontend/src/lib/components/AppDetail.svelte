@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { fetchApp, fetchConfig, relativeTime, type AppDetail, type Pod } from "$lib/console.js";
+  import { fetchApp, fetchConfig, type AppDetail, type Pod } from "$lib/console.js";
+  import { formatRelativeTime, formatTimestamp } from "$lib/format.js";
   import LoadState from "./LoadState.svelte";
   import LogsPanel from "./LogsPanel.svelte";
   import PodRows from "./PodRows.svelte";
@@ -56,8 +57,10 @@
       <div>
         <dt>Last deploy</dt>
         <dd>
-          {relativeTime(data.app.deployed_at)}{#if data.app.revision}
-            · <span class="mono">{data.app.revision.slice(0, 7)}</span>{/if}
+          <span title={formatTimestamp(data.app.deployed_at)}
+            >{formatRelativeTime(data.app.deployed_at)}</span
+          >{#if data.app.revision}{" "}·
+            <span class="mono">{data.app.revision.slice(0, 7)}</span>{/if}
         </dd>
       </div>
       <div>
@@ -90,7 +93,8 @@
           </h3>
           <span class="mono">{w.ready}/{w.desired} ready</span>
           <StatusChip status={w.rollout} />
-          {#if w.restarted_at}<span class="muted">restarted {relativeTime(w.restarted_at)}</span
+          {#if w.restarted_at}<span class="muted" title={formatTimestamp(w.restarted_at)}
+              >restarted {formatRelativeTime(w.restarted_at)}</span
             >{/if}
           {#if restartEnabled}
             <RestartButton
@@ -128,7 +132,7 @@
               <span class="mono">{e.object}</span><span class="reason">{e.reason}</span><span
                 >{e.message}</span
               ><span class="muted"
-                >{e.count > 1 ? `×${e.count} ` : ""}{relativeTime(e.last_seen)}</span
+                >{e.count > 1 ? `×${e.count} ` : ""}{formatRelativeTime(e.last_seen)}</span
               >
             </li>
           {/each}

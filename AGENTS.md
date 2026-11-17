@@ -35,6 +35,27 @@ They are written for humans: avoid big restructures, but update them when change
 - Keep `internal/mcp/http.go`, `paging.go`, and `annotations.go` unchanged
   unless the transport itself changes; put new MCP helpers in new files.
 
+## Development
+
+Run the `just` recipes from the repo root:
+
+- `just install`: install the frontend dependencies.
+- `just api`: run the Go API (serves the frontend embedded by the last `just build`).
+- `just frontend`: Vite dev server with HMR (proxies the API).
+- `just check`: gofmt, `go vet`, race tests, oxfmt, oxlint, frontend tests and svelte-check.
+- `just build`: build the frontend, embed it, and build the single binary.
+- `just run`: build, then run the binary.
+- `just image-check`: build the container image and run `scripts/container-smoke.sh` against it.
+
 ## Frontend Conventions
 
 `DESIGN.md` owns the theme, typography, layout, and interaction rules; read it before changing the frontend.
+
+`frontend/src/design-system/` is synced from the shared design-system repo
+(`pnpm sync homelab-console` there) and is never edited by hand. Change it in
+design-system, sync, and check with `pnpm sync --check`.
+
+`main.ts` imports the synced design-system CSS first, then `app.css` last (this app has no
+`palette.css`), so app rules win ties with the theme. Prefer tokens and class selectors over
+`!important`. Never edit `frontend/src/design-system/` (it is synced from the design-system repo
+with `pnpm sync`).
